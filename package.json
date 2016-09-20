@@ -3,8 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "setup": "npm i && tsd install && mkdir ./tor/data-dir && mkdir ./tor/data-dir/tor1 && mkdir ./tor/data-dir/tor2 && mkdir ./tor/data-dir/tor3 && mkdir ./tor/data-dir/tor4 && mkdir ./tor/data-dir/tor5",
-    "start": "node ./bin/www"
+    "setup": "npm i && tsd install",
+    "start": "node ./bin/www",
+    "test": "npm run test-gortrans-api",
+    "test-gortrans-api": "mocha -R spec ./tests/gortrans-api.js"
   },
   "dependencies": {
     "bluebird": "3.4.6",
@@ -16,10 +18,11 @@
     "morgan": "1.7.0",
     "request": "2.74.0",
     "serve-favicon": "2.3.0",
-    "socket.io": "1.4.8",
-    "socks5-http-client": "1.0.2"
+    "socket.io": "1.4.8"
   },
   "devDependencies": {
-    "eslint": "3.5.0"
+    "chai": "^3.5.0",
+    "eslint": "3.5.0",
+    "mocha": "^3.0.2"
   }
 }

@@ -34,4 +34,31 @@ describe( 'nskgortrans.ru api', function ()
       );
     });
   });
+
+  describe( 'get list of buses', function ()
+  {
+    it( 'shoud return list of buses', function (done)
+    {
+      this.timeout( 10000 );
+      gortrans.getListOfAvailableBuses('1-045-W-45')
+      .then(
+        function ( list )
+        {
+          assert.isDefined( list['1-045-W-45'] );
+          assert.equal( list['1-045-W-45'].length > 0, true );
+          assert.equal( list['1-045-W-45'][0]['marsh'], '045' );
+          assert.equal( list['1-045-W-45'][0]['title'], '45' );
+
+          done();
+        }
+      )
+      .catch(
+        function ( err )
+        {
+          err.should.equal(null);
+          done();
+        }
+      );
+    });
+  });
 });

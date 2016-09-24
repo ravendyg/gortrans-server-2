@@ -18,42 +18,41 @@ export { gortrans };
  */
 function getListOfRoutes()
 {
-  function main( resolve: any, reject: any )
-  {
-    let self: PromiseSelf = { resolve, reject };
-
-    request(
-      {
-        url: config.PROXY_URL,
-        method: 'GET',
-        qs: { url: encodeURI( config.NSK_ROUTES ) }
-      },
-      getListOfRoutesResponseHandler.bind( self )
-    );
-  }
-  return new Promise( main );
+  return new Promise( getListOfRoutesPromise );
 }
 
-function getListOfRoutesResponseHandler( err: ExpressError, httpResponse: any, body: string): any
+function getListOfRoutesPromise( resolve: any, reject: any )
+{
+  request(
+    {
+      url: config.PROXY_URL,
+      method: 'GET',
+      qs: { url: encodeURI( config.NSK_ROUTES ) }
+    },
+    getListOfRoutesResponseHandler.bind( this, resolve, reject )
+  );
+}
+
+function getListOfRoutesResponseHandler( resolve: any, reject: any, err: ExpressError, httpResponse: any, body: string ): any
 {
   if ( err )
   {
-    this.reject( errServ.pass( err, 'getListOfRoutes request' ) );
+    reject( errServ.pass( err, 'getListOfRoutes request' ) );
   }
   else if ( httpResponse.statusCode !== 200 )
   {
-    this.reject( errServ.create( httpResponse.statusCode, 'not 200 response', 'getListOfRoutes request' ) );
+    reject( errServ.create( httpResponse.statusCode, 'not 200 response', 'getListOfRoutes request' ) );
   }
   else
   {
     try
     {
       let data = JSON.parse( body );
-      this.resolve( data );
+      resolve( data );
     }
     catch ( e )
     {
-      this.reject( errServ.pass( e, 'getListOfRoutes parsing response' ) );
+      reject( errServ.pass( e, 'getListOfRoutes parsing response' ) );
     }
   }
 }
@@ -64,37 +63,36 @@ function getListOfRoutesResponseHandler( err: ExpressError, httpResponse: any, b
  */
 function getListOfAvailableBuses( codes: string [] )
 {
-  function main( resolve: any, reject: any )
-  {
-    let self: PromiseSelf = { resolve, reject };
-
-    request(
-      {
-        url: config.PROXY_URL,
-        method: 'GET',
-        qs: { url: encodeURI( config.NSK_BUSES + codes ) }
-      },
-      getListOfAvailableBusesHandler.bind( self )
-    );
-  }
-  return new Promise( main );
+  return new Promise( getListOfAvailableBusesPromise.bind( this, codes ) );
 }
 
-function getListOfAvailableBusesHandler( err: ExpressError, httpResponse: any, body: string): void
+function getListOfAvailableBusesPromise( codes: string [], resolve: any, reject: any )
+{
+  request(
+    {
+      url: config.PROXY_URL,
+      method: 'GET',
+      qs: { url: encodeURI( config.NSK_BUSES + codes ) }
+    },
+    getListOfAvailableBusesHandler.bind( this, resolve, reject )
+  );
+}
+
+function getListOfAvailableBusesHandler( resolve: any, reject: any, err: ExpressError, httpResponse: any, body: string): void
 {
   if ( err )
   {
-    this.reject( errServ.pass( err, 'getListOfAvailableBuses request' ) );
+    reject( errServ.pass( err, 'getListOfAvailableBuses request' ) );
   }
   else if ( httpResponse.statusCode !== 200 )
   {
-    this.reject( errServ.create( httpResponse.statusCode, 'not 200 response', 'getListOfAvailableBuses request' ) );
+    reject( errServ.create( httpResponse.statusCode, 'not 200 response', 'getListOfAvailableBuses request' ) );
   }
   else
   {
     try
     {
-      let data = JSON.parse( body ).markers;  // busData []
+      let data: busData = JSON.parse( body ).markers;
 
       var out =
         data
@@ -108,11 +106,11 @@ function getListOfAvailableBusesHandler( err: ExpressError, httpResponse: any, b
           {}
         );
 
-      this.resolve( out );
+      resolve( out );
     }
     catch ( e )
     {
-      this.reject( errServ.pass( e, 'getListOfRoutes parsing response' ) );
+      reject( errServ.pass( e, 'getListOfRoutes parsing response' ) );
     }
   }
 }

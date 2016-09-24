@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "noImplicitAny": true,
+		"moduleResolution": "node",
+    "target": "ES6",
+    "declaration": false,
+    "sourceMap": true,
+		"removeComments": false
+  },
+  "files": [
+		"node_modules/typescript/bin/lib.es6.d.ts",
+    "src/**/*.ts"
+  ],
+	"exclude": [
+		"**/*.d.ts",
+		"node_modules",
+		"typings",
+		"build"
+	]
+}

@@ -19,6 +19,15 @@
     },
     "bluebird/bluebird.d.ts": {
       "commit": "36d40a63a05b5cb3413737fbdf7c9a2a26f211fd"
+    },
+    "chai/chai.d.ts": {
+      "commit": "b9290cce1ad8da186aaa36da6154693ce132fce5"
+    },
+    "assertion-error/assertion-error.d.ts": {
+      "commit": "b9290cce1ad8da186aaa36da6154693ce132fce5"
+    },
+    "mocha/mocha.d.ts": {
+      "commit": "b9290cce1ad8da186aaa36da6154693ce132fce5"
     }
   }
 }

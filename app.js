@@ -60,5 +60,5 @@ module.exports = app;
 
 
 // process
-const dataProvider = require('./process/data-provider');
+const dataProvider = require('./build/process/data-provider');
 dataProvider.startProcess();

@@ -5,8 +5,8 @@
   "scripts": {
     "setup": "npm i && tsd install",
     "start": "node ./bin/www",
-    "test": "npm run test-gortrans-api",
-    "test-gortrans-api": "mocha -R spec ./tests/gortrans-api.js"
+    "test": "mocha \"build/tests\"",
+    "test-gortrans-api": "mocha -R spec ./build/tests/gortrans-api.js"
   },
   "dependencies": {
     "bluebird": "3.4.6",
@@ -22,7 +22,14 @@
   },
   "devDependencies": {
     "chai": "3.5.0",
+    "del": "^2.2.2",
     "eslint": "3.5.0",
-    "mocha": "3.0.2"
+    "gulp": "^3.9.1",
+    "gulp-sourcemaps": "^1.6.0",
+    "gulp-tslint": "^6.1.1",
+    "gulp-typescript": "^3.0.0",
+    "mocha": "3.0.2",
+    "tslint": "^3.15.1",
+    "typescript": "^2.0.3"
   }
 }

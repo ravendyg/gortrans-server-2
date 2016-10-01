@@ -7,6 +7,14 @@ declare type ScheduleItem =
 	nextRun: number
 };
 
+declare type State =
+{
+  [id: string]:
+  {
+    [graph: string]: busData
+  }
+};
+
 declare type ListMarsh =
 {
   type: string,

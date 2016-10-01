@@ -2,13 +2,18 @@
   "name": "gortrans-server-2",
   "version": "0.0.1",
   "private": true,
-  "scripts": {
+  "scripts":
+  {
     "setup": "npm i && tsd install",
     "start": "node ./bin/www",
     "test": "mocha \"build/tests\"",
-    "test-gortrans-api": "mocha -R spec ./build/tests/gortrans-api.js"
+    "test-gortrans-api": "mocha -R spec ./build/tests/gortrans-api.js",
+    "lint": "gulp ts-lint",
+    "compile": "gulp",
+    "watch": "gulp watch"
   },
-  "dependencies": {
+  "dependencies":
+  {
     "bluebird": "3.4.6",
     "body-parser": "1.15.1",
     "cookie-parser": "1.4.3",

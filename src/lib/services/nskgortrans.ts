@@ -2,6 +2,7 @@
 'use strict';
 
 const request = require('request');
+const Promise = require('bluebird');
 
 import { config } from '../config';
 import { errServ } from '../error';
@@ -92,7 +93,7 @@ function getListOfAvailableBusesHandler( resolve: any, reject: any, err: Express
   {
     try
     {
-      let data: busData = JSON.parse( body ).markers;
+      let data: busData [] = JSON.parse( body ).markers;
 
       var out =
         data

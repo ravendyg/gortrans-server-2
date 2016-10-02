@@ -81,7 +81,47 @@ function processBusData (data: busData [])
 
     // for each key in new state compare array corresponding to this key to the array in state
     // using time_nav as reference
-    console.log( newState );
+    let changes: StateChanges = {};
+
+    for ( let busCode of Object.keys( newState ) )
+    {
+      if ( currentState[ busCode ] )
+      {
+        changes[ busCode ] =
+        {
+          update: {},
+          remove: []
+        };
+
+        for ( let graph of Object.keys( newState[ busCode ] ) )
+        { // updates
+          if ( newState[busCode][graph].time_nav !== currentState[busCode][graph].time_nav )
+          { // smth changed
+            changes[ busCode ].update[graph] = currentState[busCode][graph];
+          }
+        }
+
+        for ( let graph of Object.keys( currentState[ busCode ] ) )
+        { // remove
+          if ( !newState[busCode][graph] )
+          { // removed
+            changes[ busCode ].remove.push( graph );
+          }
+        }
+      }
+      else
+      { // completely new
+        changes[ busCode ] =
+        {
+          update: newState[ busCode ],
+          remove: []
+        };
+      }
+    }
+    // done comparing, get rid of old state
+    currentState = newState;
+
+    console.log( changes );
 
   }
   scheduleNextRun();
@@ -111,28 +151,9 @@ function scheduleNextRun()
 function resetSchedule()
 {
   function main( resolve: any, reject: any ) {
-    gortrans.getListOfRoutes()
+    gortrans.getListOfRouteCodes()
     .then(
-      ( routes: ListMarsh [] ) => {
-        var routeCodes =
-          routes
-          .reduce(
-            ( acc: string [], route: ListMarsh ) => {
-              var codes =
-                route.ways.reduce(
-                  ( acc2: string [], way: Way ) => {
-                    var out =
-                      acc2.concat(
-                        ((+route.type) + 1) + '-' + way.marsh + '-W-' + way.name
-                      );
-                    return out;
-                  },
-                  []
-                );
-              return acc.concat( codes );
-            },
-            []
-          );
+      ( routeCodes: string [] ) => {
 
         schedule = {};
         for ( let i = 0; i < routeCodes.length; i++ ) {

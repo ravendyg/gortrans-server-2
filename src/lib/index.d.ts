@@ -15,6 +15,18 @@ declare type State =
   }
 };
 
+declare type StateChanges =
+{
+  [id: string]:
+  {
+    update:
+    {
+      [graph: string]: busData
+    }, // new data for updated graphs
+    remove: string []   // graph numbers to be removed
+  }
+};
+
 declare type ListMarsh =
 {
   type: string,

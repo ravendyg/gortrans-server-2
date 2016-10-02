@@ -10,8 +10,14 @@ function flatArrayToDict( acc: any, e: any): any
 {
 	for ( let key of Object.keys(e) )
 	{
-		acc[ key ] = e[ key ].reduce( flatArrayToDict, {} );
+		acc[ key ] = e[ key ].reduce( busListToDict, {} );
 	}
+	return acc;
+}
+
+function busListToDict( acc: any, bus: busData ): any
+{
+	acc[ bus.graph ] = bus;
 	return acc;
 }
 

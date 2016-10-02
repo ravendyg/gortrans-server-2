@@ -9,32 +9,57 @@ import { errServ } from '../error';
 
 const gortrans: any =
 {
-  getListOfRoutes, getListOfAvailableBuses
+  getListOfRoutes, getListOfRouteCodes, getListOfAvailableBuses
 };
 
 export { gortrans };
+
+
+let listOfRoutes: ListMarsh [];
+let routeCodes: string [];
+let listOfRoutesLastRefresh: number = 0;
 
 /**
  * get list of routes
  */
 function getListOfRoutes()
 {
-  return new Promise( getListOfRoutesPromise );
+  return new Promise( getListOfRoutesPromise.bind( this, true ) );
 }
 
-function getListOfRoutesPromise( resolve: any, reject: any )
+/**
+ * get list of rout codes
+ */
+function getListOfRouteCodes()
 {
-  request(
-    {
-      url: config.PROXY_URL,
-      method: 'GET',
-      qs: { url: encodeURI( config.NSK_ROUTES ) }
-    },
-    getListOfRoutesResponseHandler.bind( this, resolve, reject )
-  );
+  return new Promise( getListOfRoutesPromise.bind( this, false ) );
 }
 
-function getListOfRoutesResponseHandler( resolve: any, reject: any, err: ExpressError, httpResponse: any, body: string ): any
+/**
+ * check when route list has been updaed last time
+ * if more then a day ago refresh
+ * then resolve list of routes ro just their codes
+ */
+function getListOfRoutesPromise( allData: boolean, resolve: any, reject: any )
+{
+  if ( listOfRoutesLastRefresh + config.LIST_OF_ROUTES_REFRESH_PERIOD < Date.now() )
+  {
+    request(
+      {
+        url: config.PROXY_URL,
+        method: 'GET',
+        qs: { url: encodeURI( config.NSK_ROUTES ) }
+      },
+      getListOfRoutesResponseHandler.bind( this, allData, resolve, reject )
+    );
+  }
+  else
+  {
+    resolve( allData ? listOfRoutes : routeCodes );
+  }
+}
+
+function getListOfRoutesResponseHandler( allData: boolean, resolve: any, reject: any, err: ExpressError, httpResponse: any, body: string ): any
 {
   if ( err )
   {
@@ -48,8 +73,29 @@ function getListOfRoutesResponseHandler( resolve: any, reject: any, err: Express
   {
     try
     {
-      let data = JSON.parse( body );
-      resolve( data );
+      listOfRoutes = JSON.parse( body );
+      listOfRoutesLastRefresh = Date.now();
+
+      routeCodes =
+        listOfRoutes
+        .reduce(
+          ( acc: string [], route: ListMarsh ) => {
+            var codes =
+              route.ways.reduce(
+                ( acc2: string [], way: Way ) => {
+                  var out =
+                    acc2.concat(
+                      ((+route.type) + 1) + '-' + way.marsh + '-W-' + way.name
+                    );
+                  return out;
+                },
+                []
+              );
+            return acc.concat( codes );
+          },
+          []
+        );
+      resolve( allData ? listOfRoutes : routeCodes );
     }
     catch ( e )
     {

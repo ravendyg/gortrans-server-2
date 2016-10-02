@@ -6,7 +6,11 @@
     "target": "ES6",
     "declaration": false,
     "sourceMap": true,
-		"removeComments": false
+		"removeComments": false,
+    "types":
+    [
+      "node"
+    ]
   },
   "files": [
 		"node_modules/typescript/bin/lib.es6.d.ts",

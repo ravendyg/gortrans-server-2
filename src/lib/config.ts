@@ -6,6 +6,10 @@ const NSK_BASE_URL = 'http://maps.nskgortrans.ru/';
 const config: any = {
   PORT: 3013,
 
+  MONGO_HOST: 'mongodb://localhost:27017',
+	DB_NAME: 'gortrans2',
+	SYNC_COLLECTION_NAME: 'sync',
+
   PROXY_URL: 'http://api.nskgortrans.info/echo',
 
   NSK_BASE_URL,

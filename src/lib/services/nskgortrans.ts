@@ -6,6 +6,7 @@ const Promise = require('bluebird');
 
 import { config } from '../config';
 import { errServ } from '../error';
+import { db } from '../db/db';
 
 const gortrans: any =
 {
@@ -22,9 +23,9 @@ let listOfRoutesLastRefresh: number = 0;
 /**
  * get list of routes
  */
-function getListOfRoutes()
+function getListOfRoutes( timestamp: number )
 {
-  return new Promise( getListOfRoutesPromise.bind( this, true ) );
+  return db.getRoutes( timestamp );
 }
 
 /**
@@ -32,7 +33,7 @@ function getListOfRoutes()
  */
 function getListOfRouteCodes()
 {
-  return new Promise( getListOfRoutesPromise.bind( this, false ) );
+  return new Promise( getListOfRoutesPromise );
 }
 
 /**
@@ -40,7 +41,7 @@ function getListOfRouteCodes()
  * if more then a day ago refresh
  * then resolve list of routes ro just their codes
  */
-function getListOfRoutesPromise( allData: boolean, resolve: any, reject: any )
+function getListOfRoutesPromise( resolve: any, reject: any )
 {
   if ( listOfRoutesLastRefresh + config.LIST_OF_ROUTES_REFRESH_PERIOD < Date.now() )
   {
@@ -50,16 +51,16 @@ function getListOfRoutesPromise( allData: boolean, resolve: any, reject: any )
         method: 'GET',
         qs: { url: encodeURI( config.NSK_ROUTES ) }
       },
-      getListOfRoutesResponseHandler.bind( this, allData, resolve, reject )
+      getListOfRoutesResponseHandler.bind( this, resolve, reject )
     );
   }
   else
   {
-    resolve( allData ? listOfRoutes : routeCodes );
+    resolve( listOfRoutes );
   }
 }
 
-function getListOfRoutesResponseHandler( allData: boolean, resolve: any, reject: any, err: ExpressError, httpResponse: any, body: string ): any
+function getListOfRoutesResponseHandler( resolve: any, reject: any, err: ExpressError, httpResponse: any, body: string ): any
 {
   if ( err )
   {
@@ -95,13 +96,34 @@ function getListOfRoutesResponseHandler( allData: boolean, resolve: any, reject:
           },
           []
         );
-      resolve( allData ? listOfRoutes : routeCodes );
+      resolve( routeCodes );
+
+      refreshRoutesInDb( JSON.stringify(listOfRoutes), listOfRoutesLastRefresh );
     }
     catch ( e )
     {
       reject( errServ.pass( e, 'getListOfRoutes parsing response' ) );
     }
   }
+}
+
+/**
+ * get list of routes from DB
+ * compare them
+ * if changed replace
+ */
+function refreshRoutesInDb( newRoutes: string, timestamp: number )
+{
+  getListOfRoutes( 0 )
+  .then(
+    (routes: string) =>
+    {
+      if ( routes !== newRoutes )
+      {
+        db.putRoutes( newRoutes, timestamp );
+      }
+    }
+  );
 }
 
 /**

@@ -13,16 +13,38 @@ describe( 'nskgortrans.ru api', function ()
     it( 'shoud return list of bus types with list of routes', function (done: any)
     {
       this.timeout( 10000 );
-      gortrans.getListOfRoutes()
+      gortrans.getListOfRoutes(0)
       .then(
-        function ( list: ListMarsh [] )
+        function ({ routes, tsp }: {routes: ListMarsh [], tsp: number })
         {
-          assert.equal( Array.isArray(list), true );
-          assert.equal( list.length > 0, true );
+          assert.equal( Array.isArray(routes), true );
+          assert.equal( routes.length > 0, true );
 
-          let keys: string [] = Object.keys( list[0] );
+          let keys: string [] = Object.keys( routes[0] );
           assert.equal( keys[0], 'type' );
           assert.equal( keys[1], 'ways' );
+
+          done();
+        }
+      )
+      .catch(
+        function ( err: Error )
+        {
+          err.should.equal(null);
+          done();
+        }
+      );
+    });
+
+    it( 'shoud return empty list of bus types', function (done: any)
+    {
+      this.timeout( 10000 );
+      gortrans.getListOfRoutes( Date.now() + 1000 * 60 * 60 * 24)
+      .then(
+        function ({ routes, tsp }: {routes: ListMarsh [], tsp: number })
+        {
+          assert.equal( Array.isArray(routes), true );
+          assert.equal( routes.length === 0, true );
 
           done();
         }

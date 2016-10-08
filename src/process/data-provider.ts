@@ -4,7 +4,9 @@
 const request = require('request');
 const events = require('events');
 const emitter = new events.EventEmitter();
-const Promise = require('bluebird');
+const bb = require('bluebird');
+
+import {Promise} from 'es6-promise';
 
 import { config } from '../lib/config';
 import { errServ } from '../lib/error';
@@ -12,10 +14,18 @@ import { utils } from '../lib/utils';
 
 import { gortrans } from '../lib/services/nskgortrans';
 
+const dataProvider =
+{
+  startProcess, subscribe
+};
+export { dataProvider };
+
 let schedule: Schedule;
 
 let currentState: State = {};
 let newState: State = {};
+
+let subscribers: Subscribers = {};
 
 emitter.on(
   'data provider next run',
@@ -43,7 +53,7 @@ module.exports.startProcess = startProcess;
  */
 function fetchData()
 {
-  let calls = [ Promise.resolve() ];  // in case no calls required
+  let calls = [ bb.resolve() ];  // in case no calls required
 
   for ( let key in schedule )
   {
@@ -58,8 +68,9 @@ function fetchData()
     }
   }
 
-  return Promise.all( calls )
+  return bb.all( calls )
   .then( processBusData )
+  .then( notifyListeners )
   .catch(
     (err: ExpressError) =>
     {
@@ -69,8 +80,10 @@ function fetchData()
   );
 }
 
-function processBusData (data: busData [])
+function processBusData (data: busData []): StateChanges
 {
+  let changes: StateChanges = {};
+
   if ( data.length > 1 )
   { // send data to socket delivery service
     newState =
@@ -81,7 +94,6 @@ function processBusData (data: busData [])
 
     // for each key in new state compare array corresponding to this key to the array in state
     // using time_nav as reference
-    let changes: StateChanges = {};
 
     for ( let busCode of Object.keys( newState ) )
     {
@@ -120,11 +132,10 @@ function processBusData (data: busData [])
     }
     // done comparing, get rid of old state
     currentState = newState;
-
-    console.log( changes );
-
   }
   scheduleNextRun();
+
+  return changes;
 }
 
 /**
@@ -175,5 +186,21 @@ if ( routeCodes[i].match(/1-036-W/) || routeCodes[i].match(/1-045-W/) ) {
       }
     );
   }
-  return new Promise( main );
+  return new bb( main );
+}
+
+function notifyListeners(changes: StateChanges)
+{
+  for ( let key of Object.keys(subscribers) )
+  {
+    subscribers[key]( changes );
+  }
+}
+
+function subscribe( cb: ( changes: StateChanges ) => void ): () => void
+{
+  let key = Date.now().toString() + Math.random();
+  subscribers[ key ] = cb;
+
+  return () => { delete subscribers[key]; };
 }

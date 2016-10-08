@@ -1,9 +1,10 @@
 /// <reference path="../index.d.ts" />
 'use strict';
 
-const Promise = require('bluebird');
+const bb = require('bluebird');
 const MongoClient = require('mongodb').MongoClient;
 
+import {Promise} from 'es6-promise';
 import { config } from '../config';
 import { errServ } from '../error';
 
@@ -34,7 +35,7 @@ function mainDb()
 			}
 		);
 	}
-	return new Promise( main );
+	return new bb( main );
 }
 
 function putRoutes( routes: string, timestamp: number )
@@ -59,7 +60,7 @@ function putRoutes( routes: string, timestamp: number )
   );
 }
 
-function getRoutes( timestamp: number )
+function getRoutes( timestamp: number ): Promise<string>
 {
   function main (resolve: any, reject: any)
 	{
@@ -85,7 +86,7 @@ function getRoutes( timestamp: number )
 		;
 	}
 
-	return new Promise( main );
+	return new bb( main );
 }
 
 function updateErrorHandler( err: Error )

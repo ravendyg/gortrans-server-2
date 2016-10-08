@@ -11,9 +11,7 @@ const errSrev = require('../lib/error');
 router.route('/').get(
   function( req: any, res: any, next: any)
   {
-    next(
-      errSrev.create( 500, 'not implemented')
-    );
+    res.render('index', {});
   }
 );
 

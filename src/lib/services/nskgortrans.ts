@@ -1,39 +1,67 @@
 /// <reference path="../index.d.ts" />
 'use strict';
 
+import {Promise} from 'es6-promise';
+
 const request = require('request');
-const Promise = require('bluebird');
+const bb = require('bluebird');
 
 import { config } from '../config';
 import { errServ } from '../error';
 import { db } from '../db/db';
 
-const gortrans: any =
+
+const gortrans =
 {
   getListOfRoutes, getListOfRouteCodes, getListOfAvailableBuses
 };
 
 export { gortrans };
 
-
-let listOfRoutes: ListMarsh [];
-let routeCodes: string [];
-let listOfRoutesLastRefresh: number = 0;
+let routes: ListMarsh [] = [];
+let routesTimestamp: number = 0;
+let routeCodes: string [] = [];
+let routesLastRefresh: number = 0;
 
 /**
  * get list of routes
  */
-function getListOfRoutes( timestamp: number )
+function getListOfRoutes( timestamp: number ): Promise<{routes: ListMarsh [], tsp: number}>
 {
-  return db.getRoutes( timestamp );
+  let out: Promise<{routes: ListMarsh [], tsp: number}>;
+  if ( routesLastRefresh + config.LIST_OF_ROUTES_REFRESH_PERIOD < Date.now() )
+  { // haven't refreshed lately or at all
+    out = new bb( getListOfRoutesPromise )
+    .then(
+      () =>
+      {
+        return timestamp >= routesTimestamp
+          ? bb.resolve({routes: [], tsp: timestamp})  // up to date
+          : bb.resolve({routes: routes, tsp: routesTimestamp})
+          ;
+      }
+    );
+  }
+  else
+  {
+    out = timestamp >= routesTimestamp
+      ? bb.resolve({routes: [], tsp: timestamp})  // up to date
+      : bb.resolve({routes: routes, tsp: routesTimestamp})
+      ;
+  }
+
+  return out;
 }
 
 /**
  * get list of rout codes
  */
-function getListOfRouteCodes()
+function getListOfRouteCodes(): Promise<string []>
 {
-  return new Promise( getListOfRoutesPromise );
+  return new bb( getListOfRoutesPromise )
+    .then(
+      () => bb.resolve(routeCodes)
+    );
 }
 
 /**
@@ -41,44 +69,40 @@ function getListOfRouteCodes()
  * if more then a day ago refresh
  * then resolve list of routes ro just their codes
  */
-function getListOfRoutesPromise( resolve: any, reject: any )
+function getListOfRoutesPromise( resolve: any )
 {
-  if ( listOfRoutesLastRefresh + config.LIST_OF_ROUTES_REFRESH_PERIOD < Date.now() )
-  {
-    request(
-      {
-        url: config.PROXY_URL,
-        method: 'GET',
-        qs: { url: encodeURI( config.NSK_ROUTES ) }
-      },
-      getListOfRoutesResponseHandler.bind( this, resolve, reject )
-    );
-  }
-  else
-  {
-    resolve( listOfRoutes );
-  }
+  request(
+    {
+      url: config.PROXY_URL,
+      method: 'GET',
+      qs: { url: encodeURI( config.NSK_ROUTES ) }
+    },
+    getListOfRoutesResponseHandler.bind( this, resolve )
+  );
 }
 
-function getListOfRoutesResponseHandler( resolve: any, reject: any, err: ExpressError, httpResponse: any, body: string ): any
+function getListOfRoutesResponseHandler(
+  resolve: any, err: ExpressError, httpResponse: any, body: string ): void
 {
   if ( err )
   {
-    reject( errServ.pass( err, 'getListOfRoutes request' ) );
+    console.error( err, 'getListOfRoutes request' );
+    resolve(false);
   }
   else if ( httpResponse.statusCode !== 200 )
   {
-    reject( errServ.create( httpResponse.statusCode, 'not 200 response', 'getListOfRoutes request' ) );
+    console.error( httpResponse.statusCode, 'not 200 response', 'getListOfRoutes request' );
+    resolve(false);
   }
   else
   {
     try
     {
-      listOfRoutes = JSON.parse( body );
-      listOfRoutesLastRefresh = Date.now();
+      routes = JSON.parse( body );
+      routesLastRefresh = Date.now();
 
       routeCodes =
-        listOfRoutes
+        routes
         .reduce(
           ( acc: string [], route: ListMarsh ) => {
             var codes =
@@ -96,13 +120,13 @@ function getListOfRoutesResponseHandler( resolve: any, reject: any, err: Express
           },
           []
         );
-      resolve( routeCodes );
 
-      refreshRoutesInDb( JSON.stringify(listOfRoutes), listOfRoutesLastRefresh );
+      refreshRoutesInDb( JSON.stringify(routes), routesLastRefresh, resolve );
     }
     catch ( e )
     {
-      reject( errServ.pass( e, 'getListOfRoutes parsing response' ) );
+      console.error( e, 'getListOfRoutes parsing response' );
+      resolve(false);
     }
   }
 }
@@ -112,14 +136,16 @@ function getListOfRoutesResponseHandler( resolve: any, reject: any, err: Express
  * compare them
  * if changed replace
  */
-function refreshRoutesInDb( newRoutes: string, timestamp: number )
+function refreshRoutesInDb( newRoutes: string, timestamp: number, resolve: any )
 {
-  getListOfRoutes( 0 )
+  db.getRoutes(0)
   .then(
     (routes: string) =>
     {
       if ( routes !== newRoutes )
       {
+        routesTimestamp = timestamp;
+        resolve(true);
         db.putRoutes( newRoutes, timestamp );
       }
     }
@@ -130,12 +156,12 @@ function refreshRoutesInDb( newRoutes: string, timestamp: number )
  * get list of buses out there
  * @codes: string // concatenated codes
  */
-function getListOfAvailableBuses( codes: string [] )
+function getListOfAvailableBuses( codes: string ): Promise<indexedBusData>
 {
-  return new Promise( getListOfAvailableBusesPromise.bind( this, codes ) );
+  return new bb( getListOfAvailableBusesPromise.bind( this, codes ) );
 }
 
-function getListOfAvailableBusesPromise( codes: string [], resolve: any, reject: any )
+function getListOfAvailableBusesPromise( codes: string, resolve: any, reject: any )
 {
   request(
     {
@@ -147,7 +173,9 @@ function getListOfAvailableBusesPromise( codes: string [], resolve: any, reject:
   );
 }
 
-function getListOfAvailableBusesHandler( resolve: any, reject: any, err: ExpressError, httpResponse: any, body: string): void
+function getListOfAvailableBusesHandler(
+  resolve: any, reject: any,
+  err: ExpressError, httpResponse: any, body: string): void
 {
   if ( err )
   {

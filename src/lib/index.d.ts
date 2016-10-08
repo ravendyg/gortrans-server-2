@@ -58,18 +58,18 @@ declare type busData =
   ramp: string
 };
 
-declare type PromiseSelf =
+declare type indexedBusData =
 {
-  resolve: any,
-  reject: any
-};
-
-declare type indexedBusData = {
   [id: string]: busData []
 };
 
-declare interface ExpressError extends Error {
+declare interface ExpressError extends Error
+{
   status: number;
   __stack: string [];
 }
 
+declare type Subscribers =
+{
+  [id: string]: (changes: StateChanges) => void
+};

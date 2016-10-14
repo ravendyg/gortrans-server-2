@@ -18,7 +18,7 @@ const dataProvider =
 {
   startProcess, subscribe
 };
-export { dataProvider };
+export { dataProvider, subscribe };
 
 let schedule: Schedule;
 

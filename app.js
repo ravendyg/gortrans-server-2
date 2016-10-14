@@ -1,4 +1,4 @@
-/// <reference path="./lib/index.d.ts" />
+/// <reference path="./src/lib/index.d.ts" />
 /* global __dirname */
 'use strict';
 

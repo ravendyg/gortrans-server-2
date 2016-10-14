@@ -73,3 +73,12 @@ declare type Subscribers =
 {
   [id: string]: (changes: StateChanges) => void
 };
+
+declare type SocketClient =
+{
+  socket: SocketIO.Socket;
+  buses:
+  {
+    [id: string]: boolean
+  }
+};

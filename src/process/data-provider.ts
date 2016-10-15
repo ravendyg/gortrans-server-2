@@ -102,14 +102,19 @@ function processBusData (data: busData []): StateChanges
         changes[ busCode ] =
         {
           update: {},
+          add: {},
           remove: []
         };
 
         for ( let graph of Object.keys( newState[ busCode ] ) )
         { // updates
-          if ( newState[busCode][graph].time_nav !== currentState[busCode][graph].time_nav )
+          if ( !currentState[busCode][graph] )
+          { // new bus
+            changes[ busCode ].add[graph] = newState[busCode][graph];
+          }
+          else if ( newState[busCode][graph].time_nav !== currentState[busCode][graph].time_nav )
           { // smth changed
-            changes[ busCode ].update[graph] = currentState[busCode][graph];
+            changes[ busCode ].update[graph] = newState[busCode][graph];
           }
         }
 
@@ -125,7 +130,8 @@ function processBusData (data: busData []): StateChanges
       { // completely new
         changes[ busCode ] =
         {
-          update: newState[ busCode ],
+          update: {},
+          add: newState[ busCode ],
           remove: []
         };
       }

@@ -22,7 +22,11 @@ declare type StateChanges =
     update:
     {
       [graph: string]: busData
-    }, // new data for updated graphs
+    }, // new data for existing buses
+    add:
+    {
+      [graph: string]: busData
+    }, // data for new buses
     remove: string []   // graph numbers to be removed
   }
 };

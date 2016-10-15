@@ -24,3 +24,20 @@ npm run setup
 ```
 npm start
 ```
+
+##API
+
+Get lis of routes
+```
+GET /list-of-routes?timestamp
+
+timestamp: number - time of last update provided by the server on the previous call or 0
+
+response:
+{
+  data:
+  {
+    routes: ListOfMarh []
+  }
+}
+```

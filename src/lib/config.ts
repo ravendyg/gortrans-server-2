@@ -10,7 +10,7 @@ const config: any = {
 	DB_NAME: 'gortrans2',
 	SYNC_COLLECTION_NAME: 'sync',
 
-  PROXY_URL: 'http://localhost:3012/echo',
+  PROXY_URL: 'http://192.168.1.121:3012/echo',
 
   NSK_BASE_URL,
   NSK_ROUTES: NSK_BASE_URL + 'listmarsh.php?r&r=true',

@@ -15,7 +15,7 @@ describe( 'nskgortrans.ru api', function ()
       this.timeout( 10000 );
       gortrans.getListOfRoutes(0)
       .then(
-        function ({ routes, tsp }: {routes: ListMarsh [], tsp: number })
+        function ({ routes, timestamp }: {routes: ListMarsh [], timestamp: number })
         {
           assert.equal( Array.isArray(routes), true );
           assert.equal( routes.length > 0, true );
@@ -41,7 +41,7 @@ describe( 'nskgortrans.ru api', function ()
       this.timeout( 10000 );
       gortrans.getListOfRoutes( Date.now() + 1000 * 60 * 60 * 24)
       .then(
-        function ({ routes, tsp }: {routes: ListMarsh [], tsp: number })
+        function ({ routes, timestamp }: {routes: ListMarsh [], timestamp: number })
         {
           assert.equal( Array.isArray(routes), true );
           assert.equal( routes.length === 0, true );

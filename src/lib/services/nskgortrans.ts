@@ -26,29 +26,19 @@ let routesLastRefresh: number = 0;
 /**
  * get list of routes
  */
-function getListOfRoutes( timestamp: number ): Promise<{routes: ListMarsh [], tsp: number}>
+function getListOfRoutes( timestamp: number ): Promise<{routes: ListMarsh [], timestamp: number}>
 {
-  let out: Promise<{routes: ListMarsh [], tsp: number}>;
-  if ( routesLastRefresh + config.LIST_OF_ROUTES_REFRESH_PERIOD < Date.now() )
-  { // haven't refreshed lately or at all
-    out = new bb( getListOfRoutesPromise )
+  let out: Promise<{routes: ListMarsh [], timestamp: number}> =
+    new bb( getListOfRoutesPromise.bind(this, timestamp) )
     .then(
       () =>
       {
         return timestamp >= routesTimestamp
-          ? bb.resolve({routes: [], tsp: timestamp})  // up to date
-          : bb.resolve({routes: routes, tsp: routesTimestamp})
+          ? bb.resolve({routes: [], timestamp})  // up to date
+          : bb.resolve({routes, timestamp: routesTimestamp})
           ;
       }
     );
-  }
-  else
-  {
-    out = timestamp >= routesTimestamp
-      ? bb.resolve({routes: [], tsp: timestamp})  // up to date
-      : bb.resolve({routes: routes, tsp: routesTimestamp})
-      ;
-  }
 
   return out;
 }
@@ -56,12 +46,21 @@ function getListOfRoutes( timestamp: number ): Promise<{routes: ListMarsh [], ts
 /**
  * get list of rout codes
  */
-function getListOfRouteCodes(): Promise<string []>
+function getListOfRouteCodes( timestamp: number ): Promise<{routeCodes: string [], timestamp: number}>
 {
-  return new bb( getListOfRoutesPromise )
+  let out: Promise<{routeCodes: string [], timestamp: number}> =
+    new bb( getListOfRoutesPromise.bind(this, timestamp) )
     .then(
-      () => bb.resolve(routeCodes)
+      () =>
+      {
+        return timestamp >= routesTimestamp
+          ? bb.resolve({routeCodes: [], timestamp})  // up to date
+          : bb.resolve({routeCodes, timestamp: routesTimestamp})
+          ;
+      }
     );
+
+  return out;
 }
 
 /**
@@ -69,16 +68,23 @@ function getListOfRouteCodes(): Promise<string []>
  * if more then a day ago refresh
  * then resolve list of routes ro just their codes
  */
-function getListOfRoutesPromise( resolve: any )
+function getListOfRoutesPromise( timestamp: number, resolve: any )
 {
-  request(
-    {
-      url: config.PROXY_URL,
-      method: 'GET',
-      qs: { url: encodeURI( config.NSK_ROUTES ) }
-    },
-    getListOfRoutesResponseHandler.bind( this, resolve )
-  );
+  if ( routesLastRefresh + config.LIST_OF_ROUTES_REFRESH_PERIOD < Date.now() )
+  { // haven't refreshed lately or at all
+    request(
+      {
+        url: config.PROXY_URL,
+        method: 'GET',
+        qs: { url: encodeURI( config.NSK_ROUTES ) }
+      },
+      getListOfRoutesResponseHandler.bind( this, resolve )
+    );
+  }
+  else
+  {
+    resolve();
+  }
 }
 
 function getListOfRoutesResponseHandler(

@@ -162,9 +162,9 @@ function scheduleNextRun()
 function resetSchedule()
 {
   function main( resolve: any, reject: any ) {
-    gortrans.getListOfRouteCodes()
+    gortrans.getListOfRouteCodes(0)
     .then(
-      ( routeCodes: string [] ) => {
+      ( {routeCodes, timestamp}: {routeCodes: string [], timestamp: number} ) => {
 
         schedule = {};
         for ( let i = 0; i < routeCodes.length; i++ ) {

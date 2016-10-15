@@ -64,6 +64,13 @@ router.route('/').get(
   }
 );
 
+router.route('*').get(
+  (req: any, res: any) =>
+  {
+    res.redirect(301, '/');
+  }
+);
+
 
 
 

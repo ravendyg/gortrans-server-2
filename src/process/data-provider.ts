@@ -55,17 +55,30 @@ function fetchData()
 {
   let calls = [ bb.resolve() ];  // in case no calls required
 
+  let keyList: string [] = [];
   for ( let key in schedule )
   {
     if ( --schedule[key].nextRun === 0 )
     {
       // later implement smarter scheduler algorithm
       schedule[key].nextRun = 1;
+      keyList.push( key );
 
-      calls.push(
-        gortrans.getListOfAvailableBuses( key )
-      );
+      if ( keyList.length === 5 )
+      {
+        calls.push(
+          gortrans.getListOfAvailableBuses( keyList.join('|') )
+        );
+        keyList = [];
+      }
     }
+  }
+
+  if ( keyList.length > 0 )
+  { // last group smaller than 5
+    calls.push(
+      gortrans.getListOfAvailableBuses( keyList.join('|') )
+    );
   }
 
   return bb.all( calls )

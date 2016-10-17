@@ -23,7 +23,7 @@ function start(server: any)
         buses: {}
       };
 
-      socket.on( 'disconnect', disconnect );
+      socket.on( 'disconnect', disconnect.bind(this, socket) );
 
       socket.on( 'add bus listener', addBusListenere );
 
@@ -42,7 +42,7 @@ module.exports.start = start;
 
 
 
-function disconnect()
+function disconnect(socket: SocketIO.Socket)
 {
   let listOfBuses: string [] = Object.keys( listOfClients[socket.id].buses );
   for ( let bus of listOfBuses )

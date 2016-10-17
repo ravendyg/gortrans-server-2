@@ -9,7 +9,7 @@ Use existing Ionic 2 app as a desktop version;
 &nbsp;
 
 ### Dependecies
-node 6.5.0, tsd 0.6.5, tor
+node 6.5.0, tsd 0.6.5, gulp
 
 &nbsp;
 

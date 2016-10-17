@@ -31,9 +31,6 @@
     },
     "mongodb/mongodb.d.ts": {
       "commit": "2c65d5ca7267fda6d49a3b447c8b089632fb5358"
-    },
-    "promise/promise.d.ts": {
-      "commit": "2c65d5ca7267fda6d49a3b447c8b089632fb5358"
     }
   }
 }

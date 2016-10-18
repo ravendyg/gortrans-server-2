@@ -3,4 +3,4 @@ typings/
 tor/data-dir/tor*
 build/
 npm-debug.log
-.gitignore
+.vscode

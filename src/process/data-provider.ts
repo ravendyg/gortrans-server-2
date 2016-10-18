@@ -18,7 +18,7 @@ const dataProvider =
 {
   startProcess, subscribe
 };
-export { dataProvider, subscribe };
+export { dataProvider, subscribe, getCurrentState };
 
 let schedule: Schedule;
 
@@ -222,4 +222,12 @@ function subscribe( cb: ( changes: StateChanges ) => void ): () => void
   subscribers[ key ] = cb;
 
   return () => { delete subscribers[key]; };
+}
+
+/**
+ * return current state for given code
+ */
+function getCurrentState(busCode: string)
+{
+  return currentState[ busCode ];
 }

@@ -9,7 +9,7 @@ declare type ScheduleItem =
 
 declare type State =
 {
-  [id: string]:
+  [busCode: string]:
   {
     [graph: string]: busData
   }
@@ -17,7 +17,7 @@ declare type State =
 
 declare type StateChanges =
 {
-  [id: string]:
+  [busCode: string]:
   {
     update:
     {
@@ -64,7 +64,7 @@ declare type busData =
 
 declare type indexedBusData =
 {
-  [id: string]: busData []
+  [busCode: string]: busData []
 };
 
 declare interface ExpressError extends Error

@@ -2,7 +2,7 @@
 'use strict';
 
 let io: SocketIO.Server;
-import { subscribe } from '../../process/data-provider';
+import { subscribe, getCurrentState } from '../../process/data-provider';
 
 let listOfClients: {[socketId: string]: SocketClient} = {};
 let listOfBusListeners: {[bus: string]: {ids: {[socketId: string]: boolean}}} = {};
@@ -34,7 +34,23 @@ function start(server: any)
   subscribe(
     (changes: StateChanges) =>
     {
-      console.log(changes);
+      for ( let socketId of Object.keys(listOfClients) )
+      {
+        let parcel: StateChanges = {};
+        let dispatchRequired = false;
+        for ( let busCode of Object.keys(listOfClients[socketId].buses) )
+        {
+          dispatchRequired = true;
+          parcel[busCode] = changes[busCode];
+        }
+        if ( dispatchRequired )
+        {
+          listOfClients[socketId].socket.emit(
+            'bus update',
+            parcel
+          );
+        }
+      }
     }
   );
 }
@@ -55,14 +71,23 @@ function disconnect(socket: SocketIO.Socket)
   delete listOfClients[socket.id];
 }
 
-function addBusListenere(socket: SocketIO.Socket, code: string)
+function addBusListenere(socket: SocketIO.Socket, busCode: string)
 {
-  listOfClients[socket.id].buses[code] = true;
-  if ( !listOfBusListeners[code] )
+  // register listener
+  listOfClients[socket.id].buses[busCode] = true;
+  if ( !listOfBusListeners[busCode] )
   {
-    listOfBusListeners[code] = { ids: {} };
+    listOfBusListeners[busCode] = { ids: {} };
   }
-  listOfBusListeners[code].ids[socket.id] = true;
+  listOfBusListeners[busCode].ids[socket.id] = true;
+
+  // send current state
+  let _state: State = {};
+  _state[busCode] = getCurrentState(busCode);
+  socket.emit(
+    'bus listener created',
+    _state
+  );
 }
 
 function removeBusListener(socket: SocketIO.Socket, code: string)

@@ -185,11 +185,13 @@ function getListOfAvailableBusesHandler(
 {
   if ( err )
   {
-    reject( errServ.pass( err, 'getListOfAvailableBuses request' ) );
+    console.error( err, 'getListOfAvailableBuses request' );
+    resolve({});
   }
   else if ( httpResponse.statusCode !== 200 )
   {
-    reject( errServ.create( httpResponse.statusCode, 'not 200 response', 'getListOfAvailableBuses request' ) );
+    console.error( httpResponse.statusCode, 'not 200 response', 'getListOfAvailableBuses request' );
+    resolve({});
   }
   else
   {

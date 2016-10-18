@@ -25,9 +25,9 @@ function start(server: any)
 
       socket.on( 'disconnect', disconnect.bind(this, socket) );
 
-      socket.on( 'add bus listener', addBusListenere );
+      socket.on( 'add bus listener', addBusListenere.bind(this, socket) );
 
-      socket.on( 'remove bus listener', removeBusListener );
+      socket.on( 'remove bus listener', removeBusListener.bind(this, socket) );
     }
   );
 
@@ -55,13 +55,13 @@ function disconnect(socket: SocketIO.Socket)
   delete listOfClients[socket.id];
 }
 
-function addBusListenere(code: string)
+function addBusListenere(socket: SocketIO.Socket, code: string)
 {
   listOfClients[socket.id].buses[code] = true;
   listOfBusListeners[code].ids[socket.id] = true;
 }
 
-function removeBusListener(code: string)
+function removeBusListener(socket: SocketIO.Socket, code: string)
 {
   delete listOfClients[socket.id].buses[code];
   delete listOfBusListeners[code].ids[socket.id];

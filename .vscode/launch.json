@@ -10,7 +10,7 @@
 			"args": [],
 			"cwd": "${workspaceRoot}",
 			"preLaunchTask": null,
-			"runtimeExecutable": null,
+			"runtimeExecutable": "/home/me/.nvm/versions/node/v6.8.1/bin/node",
 			"runtimeArgs": [
 				"--nolazy"
 			],

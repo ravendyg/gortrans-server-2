@@ -58,11 +58,22 @@ function disconnect(socket: SocketIO.Socket)
 function addBusListenere(socket: SocketIO.Socket, code: string)
 {
   listOfClients[socket.id].buses[code] = true;
+  if ( !listOfBusListeners[code] )
+  {
+    listOfBusListeners[code] = { ids: {} };
+  }
   listOfBusListeners[code].ids[socket.id] = true;
 }
 
 function removeBusListener(socket: SocketIO.Socket, code: string)
 {
-  delete listOfClients[socket.id].buses[code];
-  delete listOfBusListeners[code].ids[socket.id];
+  try
+  {
+    delete listOfClients[socket.id].buses[code];
+    delete listOfBusListeners[code].ids[socket.id];
+  }
+  catch (err)
+  {
+    console.error(err, listOfClients, listOfBusListeners, code, 'removing bus listener');
+  }
 }

@@ -4,9 +4,54 @@
 const express = require('express');
 const router = express.Router();
 
+import {Promise} from 'es6-promise';
+import * as bb from 'bluebird';
+
 import { gortrans } from '../lib/services/nskgortrans';
+import { db } from '../lib/db/db';
 
 const errSrev = require('../lib/error');
+
+/**
+ * sync list of routes, bus lines, and bus stops
+ */
+router.route('/sync').get(
+  (req: any, res: any) =>
+  {
+    let routesTimestamp = +req.query.routestimestamp || 0;
+    let trassesTimestamp = +req.query.trassestimestamp || 0;
+    bb.all([
+      gortrans.getListOfRoutes(routesTimestamp),
+      db.getTrasses(trassesTimestamp),
+      db.getLatestTrass()
+    ])
+    .then(
+      (data: any) =>
+      {
+        let out: any =
+        {
+          routes: { routes: data[0].routes, timestamp: data[0].timestamp },
+          trasses: { timestamp: data[2].timestamp || 0 },
+        };
+        for ( let trass of data[1] )
+        {
+          out.trasses[trass.busCode] = trass.trass;
+        }
+        res.json(out);
+      }
+    )
+    .catch(
+      (err: Error) =>
+      {
+        console.error(err, '/sync');
+        res.json({
+          routes: { routes: [], timestamp: 0 },
+          trasses: { trasses: [], timestamp: 0 },
+        });
+      }
+    );
+  }
+);
 
 /**
  * get list of routes
@@ -14,7 +59,7 @@ const errSrev = require('../lib/error');
 router.route('/list-of-routes').get(
   (req: any, res: any) =>
   {
-    gortrans.getListOfRoutes( req.query.tsp || 0 )
+    gortrans.getListOfRoutes( req.query.timestamp || 0 )
     .then(
       (data: {routes: ListMarsh [], timestamp: number}) =>
       {

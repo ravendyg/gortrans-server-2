@@ -13,7 +13,7 @@ const DB = mainDb();
 const db =
 {
   putRoutes, getRoutes,
-  putTrasses, getTrasses
+  putTrasses, getTrass, getTrasses, getLatestTrass
 };
 
 export { db };
@@ -61,7 +61,7 @@ function putRoutes( routes: string, timestamp: number )
   );
 }
 
-function getRoutes( timestamp: number ): Promise<string>
+function getRoutes( timestamp: number ): Promise<{routes: string, timestamp: number}>
 {
   function main (resolve: any, reject: any)
 	{
@@ -76,7 +76,7 @@ function getRoutes( timestamp: number ): Promise<string>
 					(err: Error, res: any) =>
 					{
 						if (err) { reject(err); }
-            else if (res) { resolve( res.routes ); }
+            else if (res) { resolve( res ); }
 						else { resolve(''); }
 					}
 				)
@@ -118,27 +118,18 @@ function putTrasses( trass: string, busCode: string, timestamp: number )
   );
 }
 
-function getTrasses(
-  {timestamp, busCode}:
-  {timestamp: number, busCode?: string}
-): Promise<{trass: string, timestamp: number}>
+function getTrass( timestamp: number, busCode: string ): Promise<{trass: string, timestamp: number}>
 {
   function main (resolve: any, reject: any)
 	{
-    let query: any =
-    {
-      type: 'trasses',
-      timestamp: { $gt: timestamp }
-    };
-    if ( busCode )
-    {
-      query.busCode = busCode;
-    }
-
 		DB.then(
 			(db: any) =>
 				db.collection(config.SYNC_COLLECTION_NAME).findOne(
-					query,
+					{
+            type: 'trasses',
+            timestamp: { $gt: timestamp },
+            busCode
+          },
           { trass: 1, timestamp: 1 },
 					(err: Error, res: {trass: string, timestamp: number}) =>
 					{
@@ -148,7 +139,7 @@ function getTrasses(
               resolve({trass: '', timestamp: 0});
             }
             else if (res) { resolve( res ); }
-						else { resolve({trass: '', timestamp: 0}); }
+						else { resolve({trass: '', timestamp}); }
 					}
 				)
 		)
@@ -159,6 +150,54 @@ function getTrasses(
 	}
 
 	return new bb( main );
+}
+
+function getTrasses(timestamp: number):
+  Promise<{trass: string, timestamp: number} []>
+{
+  return DB.then(
+    (db: any) =>
+      db.collection(config.SYNC_COLLECTION_NAME)
+      .find(
+        {
+          type: 'trasses',
+          timestamp: { $gt: timestamp }
+        },
+        { trass: 1, busCode: 1, _id: 0 }
+      )
+      .toArray()
+  );
+}
+
+function getLatestTrass(): Promise<any>
+{
+  function main( resolve: any )
+  {
+    DB.then(
+      (db: any) =>
+      {
+        db.collection(config.SYNC_COLLECTION_NAME)
+        .find( {type: 'trasses'}, {trass: 0} )
+        .sort({timestamp: -1})
+        .limit(1)
+        .nextObject(
+          (err: Error, item: any) =>
+          {
+            if ( err )
+            {
+              console.error( err, 'getLatestTrass');
+              resolve({timestamp: 0});
+            }
+            else
+            {
+              resolve( item );
+            }
+          }
+        );
+      }
+    );
+  }
+  return new bb( main );
 }
 
 function updateErrorHandler( err: Error )

@@ -1,15 +1,14 @@
 /// <reference path="../index.d.ts" />
 'use strict';
 
-import {Promise} from 'es6-promise';
-
 const request = require('request');
-const bb = require('bluebird');
+
+import {Promise} from 'es6-promise';
+import * as bb from 'bluebird';
 
 import { config } from '../config';
 import { errServ } from '../error';
 import { db } from '../db/db';
-
 
 const gortrans =
 {
@@ -146,9 +145,9 @@ function refreshRoutesInDb( newRoutes: string, timestamp: number, resolve: any )
 {
   db.getRoutes(0)
   .then(
-    (routes: string) =>
+    (res: {routes: string, timestamp: number}) =>
     {
-      if ( routes !== newRoutes )
+      if ( res.routes !== newRoutes )
       {
         routesTimestamp = timestamp;
         resolve(true);
@@ -157,6 +156,7 @@ function refreshRoutesInDb( newRoutes: string, timestamp: number, resolve: any )
       else
       {
         resolve(false);
+        routesTimestamp = res.timestamp;
       }
     }
   );
@@ -239,10 +239,7 @@ routeCodes = routeCodes.filter( e => e.match(/1-036-W/) || e.match(/1-045-W/) );
         return new bb(
           (resolve: any) =>
           { // check whether it's in the db
-            db.getTrasses({
-              timestamp: 0, // Date.now() - config.TRASS_DATA_VALID_FOR,
-              busCode
-            })
+            db.getTrass( 0, busCode )
             .then(
               (val: {trass: string, timestamp: number}) =>
               {

@@ -154,6 +154,10 @@ function refreshRoutesInDb( newRoutes: string, timestamp: number, resolve: any )
         resolve(true);
         db.putRoutes( newRoutes, timestamp );
       }
+      else
+      {
+        resolve(false);
+      }
     }
   );
 }
@@ -218,4 +222,82 @@ function getListOfAvailableBusesHandler(
       reject( errServ.pass( e, 'getListOfRoutes parsing response' ) );
     }
   }
+}
+
+
+// initial load of vehicle trasses
+getListOfRoutes(0)
+.then(
+  () =>
+  {
+// debug limit
+routeCodes = routeCodes.filter( e => e.match(/1-036-W/) || e.match(/1-045-W/) );
+
+    routeCodes.reduce(
+      ( acc: Promise<any>, busCode: string ) =>
+      {
+        return new bb(
+          (resolve: any) =>
+          { // check whether it's in the db
+            db.getTrasses({
+              timestamp: 0, // Date.now() - config.TRASS_DATA_VALID_FOR,
+              busCode
+            })
+            .then(
+              (val: {trass: string, timestamp: number}) =>
+              {
+                let timestamp = Date.now();
+                if ( val.timestamp + config.TRASS_DATA_VALID_FOR > timestamp )
+                { // relatively fresh
+                  resolve();
+                }
+                else
+                { // expired, reload for check
+                  getVehicleTrass(resolve, busCode, val.trass, timestamp);
+                }
+              }
+            )
+            .catch( () => resolve() );
+          }
+        );
+      },
+      Promise.resolve()
+    );
+  }
+);
+
+
+function getVehicleTrass(resolve: any, busCode: string, trass: string, timestamp: number)
+{
+  request(
+    {
+      url: config.PROXY_URL,
+      method: 'GET',
+      qs: { url: encodeURI( config.NSK_ROUTES ) }
+    },
+    getVehicleTrassResponseHandler.bind(this, resolve, trass, busCode, timestamp)
+  );
+}
+
+function getVehicleTrassResponseHandler(
+  resolve: any, trass: string, busCode: string, timestamp: number,
+  err: Error, httpResponse: any, body: string
+)
+{
+  if ( err )
+  {
+    console.error( err, 'getVehicleTrass request' );
+  }
+  else if ( httpResponse.statusCode !== 200 )
+  {
+    console.error( httpResponse.statusCode, 'not 200 response', 'getVehicleTrass request' );
+  }
+  else
+  {
+    if ( body !== trass )
+    { // smth changed
+      db.putTrasses(body, busCode, timestamp);
+    }
+  }
+  resolve();
 }

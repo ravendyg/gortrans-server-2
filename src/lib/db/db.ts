@@ -12,7 +12,8 @@ const DB = mainDb();
 
 const db =
 {
-  putRoutes, getRoutes
+  putRoutes, getRoutes,
+  putTrasses, getTrasses
 };
 
 export { db };
@@ -72,11 +73,82 @@ function getRoutes( timestamp: number ): Promise<string>
 						type: 'routes',
 						timestamp: { $gt: timestamp }
 					},
-					(err: Error, res: string) =>
+					(err: Error, res: any) =>
 					{
 						if (err) { reject(err); }
-            else if (res) { resolve( res ); }
+            else if (res) { resolve( res.routes ); }
 						else { resolve(''); }
+					}
+				)
+		)
+		.catch(
+      (err: Error) => reject(err)
+		)
+		;
+	}
+
+	return new bb( main );
+}
+
+
+function putTrasses( trass: string, busCode: string, timestamp: number )
+{
+  DB.then(
+    (db: any) =>
+    {
+      db.collection(config.SYNC_COLLECTION_NAME)
+      .update(
+        {
+          type: 'trasses',
+          busCode
+        },
+        {
+          $set:
+          {
+            type: 'trasses',
+            timestamp,
+            busCode,
+            trass
+          }
+        },
+        { upsert: true },
+        updateErrorHandler
+      );
+    }
+  );
+}
+
+function getTrasses(
+  {timestamp, busCode}:
+  {timestamp: number, busCode?: string}
+): Promise<{trass: string, timestamp: number}>
+{
+  function main (resolve: any, reject: any)
+	{
+    let query: any =
+    {
+      type: 'trasses',
+      timestamp: { $gt: timestamp }
+    };
+    if ( busCode )
+    {
+      query.busCode = busCode;
+    }
+
+		DB.then(
+			(db: any) =>
+				db.collection(config.SYNC_COLLECTION_NAME).findOne(
+					query,
+          { trass: 1, timestamp: 1 },
+					(err: Error, res: {trass: string, timestamp: number}) =>
+					{
+						if (err)
+            {
+              console.error(err, 'getTrasses');
+              resolve({trass: '', timestamp: 0});
+            }
+            else if (res) { resolve( res ); }
+						else { resolve({trass: '', timestamp: 0}); }
 					}
 				)
 		)

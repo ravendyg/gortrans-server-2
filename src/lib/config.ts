@@ -19,6 +19,8 @@ const config: any = {
 
   DATA_RETRIEVAL_PERIOD: 1000 * 30, // in miliseconds
   LIST_OF_ROUTES_REFRESH_PERIOD: 1000 * 60 * 60 * 24,
+
+  TRASS_DATA_VALID_FOR: 1000 * 60 * 60 * 24,
 };
 
 export { config };

@@ -86,3 +86,27 @@ declare type SocketClient =
     [id: string]: boolean
   }
 };
+
+
+declare type BusPoint =
+{
+  lat: string,
+  lng: string,
+  id?: string,
+  n?: string,
+  len?: string,
+};
+
+declare type TrassResponse =
+{
+  trasses:
+  {
+    r:
+    {
+      pc: string,
+      marsh: string,
+      u: BusPoint []
+    } []
+  } []
+};
+

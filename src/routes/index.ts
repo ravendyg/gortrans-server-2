@@ -31,11 +31,11 @@ router.route('/sync').get(
         let out: any =
         {
           routes: { routes: data[0].routes, timestamp: data[0].timestamp },
-          trasses: { timestamp: data[2].timestamp || 0 },
+          trasses: { trasses: {}, timestamp: data[2].timestamp || 0 },
         };
         for ( let trass of data[1] )
         {
-          out.trasses[trass.busCode] = trass.trass;
+          out.trasses.trasses[trass.busCode] = trass.trass;
         }
         res.json(out);
       }

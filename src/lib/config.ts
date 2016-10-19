@@ -13,8 +13,9 @@ const config: any = {
   PROXY_URL: 'http://192.168.1.121:3012/echo',
 
   NSK_BASE_URL,
-  NSK_ROUTES: NSK_BASE_URL + 'listmarsh.php?r&r=true',
-  NSK_BUSES:  NSK_BASE_URL + 'markers.php?r=',
+  NSK_ROUTES:   NSK_BASE_URL + 'listmarsh.php?r&r=true',
+  NSK_BUSES:    NSK_BASE_URL + 'markers.php?r=',
+  NSK_TRASSES:  NSK_BASE_URL + 'trasses.php?r=',
 
 
   DATA_RETRIEVAL_PERIOD: 1000 * 30, // in miliseconds

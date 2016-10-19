@@ -268,9 +268,9 @@ function getVehicleTrass(resolve: any, busCode: string, trass: string, timestamp
 {
   request(
     {
-      url: config.PROXY_URL,
+      url: config.PROXY_URL + busCode,
       method: 'GET',
-      qs: { url: encodeURI( config.NSK_ROUTES ) }
+      qs: { url: encodeURI( config.NSK_TRASSES ) }
     },
     getVehicleTrassResponseHandler.bind(this, resolve, trass, busCode, timestamp)
   );

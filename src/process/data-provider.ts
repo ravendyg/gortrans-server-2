@@ -229,5 +229,5 @@ function subscribe( cb: ( changes: StateChanges ) => void ): () => void
  */
 function getCurrentState(busCode: string)
 {
-  return currentState[ busCode ];
+  return currentState[ busCode ] || {};
 }

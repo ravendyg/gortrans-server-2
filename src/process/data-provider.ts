@@ -54,7 +54,7 @@ module.exports.startProcess = startProcess;
  */
 function tryToRescheduleCheck( busCode: string ): void
 {
-  if ( schedule[busCode].nextRun > 1 )
+  if ( schedule[busCode] && schedule[busCode].nextRun > 1 )
   {
     schedule[busCode].nextRun = 1;
   }

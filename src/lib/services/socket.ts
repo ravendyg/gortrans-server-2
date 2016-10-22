@@ -2,7 +2,7 @@
 'use strict';
 
 let io: SocketIO.Server;
-import { subscribe, getCurrentState } from '../../process/data-provider';
+import { subscribe, getCurrentState, tryToRescheduleCheck } from '../../process/data-provider';
 
 let listOfClients: {[socketId: string]: SocketClient} = {};
 let listOfBusListeners: {[bus: string]: {ids: {[socketId: string]: boolean}}} = {};
@@ -88,6 +88,8 @@ function addBusListenere(socket: SocketIO.Socket, busCode: string)
     listOfBusListeners[busCode] = { ids: {} };
   }
   listOfBusListeners[busCode].ids[socket.id] = true;
+
+  tryToRescheduleCheck(busCode);
 
   // send current state
   let _state: State = {};

@@ -179,12 +179,12 @@ function getListOfAvailableBusesPromise( codes: string, resolve: any, reject: an
       method: 'GET',
       qs: { url: encodeURI( config.NSK_BUSES + codes ) }
     },
-    getListOfAvailableBusesHandler.bind( this, resolve, reject )
+    getListOfAvailableBusesHandler.bind( this, resolve, reject, codes )
   );
 }
 
 function getListOfAvailableBusesHandler(
-  resolve: any, reject: any,
+  resolve: any, reject: any, codesQuery: string,
   err: ExpressError, httpResponse: any, body: string): void
 {
   if ( err )
@@ -215,6 +215,15 @@ function getListOfAvailableBusesHandler(
           {}
         );
 
+      let codes = codesQuery.split('|');
+      for ( let code of codes )
+      { // in case there were no markers for this bus
+        if ( !out[code] )
+        {
+          out[code] = [];
+        }
+      }
+
       resolve( out );
     }
     catch ( e )
@@ -231,7 +240,7 @@ getListOfRoutes(0)
   () =>
   {
 // debug limit
-routeCodes = routeCodes.filter( e => e.match(/1-036-W/) || e.match(/1-045-W/) );
+routeCodes = routeCodes.filter( config.TEST_BUSES_FOO );
 
     routeCodes.reduce(
       ( acc: Promise<any>, busCode: string ) =>

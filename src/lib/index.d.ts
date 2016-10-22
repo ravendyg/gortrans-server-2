@@ -1,10 +1,14 @@
 /// <reference path="../../typings/tsd.d.ts" />
 
-declare type Schedule = { [id: string]: ScheduleItem };
+declare type Schedule =
+{
+  [busCode: string]: ScheduleItem
+};
 
 declare type ScheduleItem =
 {
-	nextRun: number
+  nextRun: number,
+  numberOfEmptyRuns: number
 };
 
 declare type State =

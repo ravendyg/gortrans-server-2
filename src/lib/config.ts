@@ -22,6 +22,8 @@ const config: any = {
   LIST_OF_ROUTES_REFRESH_PERIOD: 1000 * 60 * 60 * 24,
 
   TRASS_DATA_VALID_FOR: 1000 * 60 * 60 * 24,
+
+  TEST_BUSES_FOO: (e: any) => e.match(/1-036-W/) || e.match(/1-045-W/) || e.match(/1-264-W/)
 };
 
 export { config };

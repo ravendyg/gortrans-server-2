@@ -40,10 +40,11 @@ function start(server: any)
         let dispatchRequired = false;
         for ( let busCode of Object.keys(listOfClients[socketId].buses) )
         {
-          if (  Object.keys(changes[busCode].add).length +
-                Object.keys(changes[busCode].update).length +
-                changes[busCode].remove.length
-                > 0
+          if ( changes[busCode] && (
+            Object.keys(changes[busCode].add).length +
+            Object.keys(changes[busCode].update).length +
+            changes[busCode].remove.length
+            > 0 )
           )
           {
             dispatchRequired = true;

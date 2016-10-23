@@ -12,7 +12,7 @@ import { db } from '../db/db';
 
 const gortrans =
 {
-  getListOfRoutes, getListOfRouteCodes, getListOfAvailableBuses
+  getListOfRoutes, getListOfRouteCodes, getListOfAvailableBuses, getStops
 };
 
 export { gortrans };
@@ -418,4 +418,21 @@ function loadStopsFromDb(): Promise<boolean>
     );
   }
   return new bb( main );
+}
+
+function getStops(timestamp: number):
+Promise<{stops: { [stopId: string]: Stop }, busStops: BusStops, timestamp: number}>
+{
+  if (timestamp < stopsTimestamp)
+  {
+    return bb.resolve(
+      {stops, busStops, timestamp: stopsTimestamp}
+    );
+  }
+  else
+  {
+    return bb.resolve(
+      {stops: {}, busStops: {}, timestamp}
+    );
+  }
 }

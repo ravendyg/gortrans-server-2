@@ -20,10 +20,12 @@ router.route('/sync').get(
   {
     let routesTimestamp = +req.query.routestimestamp || 0;
     let trassesTimestamp = +req.query.trassestimestamp || 0;
+    let stopsTimestamp = +req.query.stopstimestamp || 0;
     bb.all([
       gortrans.getListOfRoutes(routesTimestamp),
       db.getTrasses(trassesTimestamp),
-      db.getLatestTrass()
+      db.getLatestTrass(),
+      gortrans.getStops(stopsTimestamp)
     ])
     .then(
       (data: any) =>
@@ -32,6 +34,7 @@ router.route('/sync').get(
         {
           routes: { routes: data[0].routes, timestamp: data[0].timestamp },
           trasses: { trasses: {}, timestamp: data[2].timestamp || 0 },
+          stopsData: { stops: data[3].stops, busStops: data[3].busStops, timestamp: data[3].timestamp }
         };
         for ( let trass of data[1] )
         {
@@ -47,6 +50,7 @@ router.route('/sync').get(
         res.json({
           routes: { routes: [], timestamp: 0 },
           trasses: { trasses: [], timestamp: 0 },
+          stopsData: { stops: {}, busStops: {}, timestamp: 0 }
         });
       }
     );

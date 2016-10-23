@@ -114,3 +114,19 @@ declare type TrassResponse =
   } []
 };
 
+declare type Stop =
+{
+  id: string,
+  n: string,
+  lat: number,
+  lng: number,
+  vehicles: {[busCode: string]: boolean}
+};
+
+declare type BusStops =
+{
+  [busCode: string]:
+  {
+    [stopId: string]: boolean
+  }
+};

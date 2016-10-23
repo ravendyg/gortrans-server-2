@@ -22,6 +22,11 @@ let routesTimestamp: number = 0;
 let routeCodes: string [] = [];
 let routesLastRefresh: number = 0;
 
+
+let stops: { [stopId: string]: Stop } = {};
+let busStops: BusStops = {};
+let stopsTimestamp: number = 0;
+
 /**
  * get list of routes
  */
@@ -235,7 +240,10 @@ function getListOfAvailableBusesHandler(
 
 
 // initial load of vehicle trasses
-getListOfRoutes(0)
+bb.all([
+  getListOfRoutes(0),
+  loadStopsFromDb()
+])
 .then(
   () =>
   {
@@ -245,35 +253,58 @@ routeCodes = routeCodes.filter( config.TEST_BUSES_FOO );
     routeCodes.reduce(
       ( acc: Promise<any>, busCode: string ) =>
       {
-        return new bb(
-          (resolve: any) =>
-          { // check whether it's in the db
-            db.getTrass( 0, busCode )
-            .then(
-              (val: {trass: string, timestamp: number}) =>
-              {
-                let timestamp = Date.now();
-                if ( val.timestamp + config.TRASS_DATA_VALID_FOR > timestamp )
-                { // relatively fresh
-                  resolve();
-                }
-                else
-                { // expired, reload for check
-                  getVehicleTrass(resolve, busCode, val.trass, timestamp);
-                }
+        return acc.then(
+          (trassNotChanged: boolean) =>
+          {
+            return new bb(
+              (resolve: any) =>
+              { // check whether it's in the db
+                db.getTrass( 0, busCode )
+                .then(
+                  (val: {trass: string, timestamp: number}) =>
+                  {
+                    let timestamp = Date.now();
+                    if ( val.timestamp + config.TRASS_DATA_VALID_FOR > timestamp )
+                    { // relatively fresh
+                      resolve(trassNotChanged && true);
+                    }
+                    else
+                    { // expired, reload for check
+                      getVehicleTrass(resolve, busCode, val.trass, timestamp, trassNotChanged);
+                    }
+                  }
+                );
               }
-            )
-            .catch( () => resolve() );
+            );
           }
         );
       },
-      Promise.resolve()
+      bb.resolve(true)
+    )
+    .then(
+      (trassNotChanged: boolean) =>
+      {
+        if ( !trassNotChanged )
+        {
+          db.putStopsInDb(stops, busStops, stopsTimestamp);
+        }
+        return bb.resolve();
+      }
+    )
+    .catch(
+      (err: Error) =>
+      {
+        console.error(err, 'initial load of vehicle trasses');
+      }
     );
   }
 );
 
 
-function getVehicleTrass(resolve: any, busCode: string, trass: string, timestamp: number)
+function getVehicleTrass(
+  resolve: any, busCode: string, trass: string,
+  timestamp: number, trassNotChanged: boolean
+)
 {
   request(
     {
@@ -281,29 +312,110 @@ function getVehicleTrass(resolve: any, busCode: string, trass: string, timestamp
       method: 'GET',
       qs: { url: encodeURI( config.NSK_TRASSES + busCode ) }
     },
-    getVehicleTrassResponseHandler.bind(this, resolve, trass, busCode, timestamp)
+    getVehicleTrassResponseHandler
+    .bind(this, resolve, trass, busCode, timestamp, trassNotChanged)
   );
 }
 
 function getVehicleTrassResponseHandler(
-  resolve: any, trass: string, busCode: string, timestamp: number,
+  resolve: any, trass: string, busCode: string, timestamp: number, trassNotChanged: boolean,
   err: Error, httpResponse: any, body: string
-)
+): void
 {
   if ( err )
   {
     console.error( err, 'getVehicleTrass request' );
+    resolve(trassNotChanged && true);
   }
   else if ( httpResponse.statusCode !== 200 )
   {
     console.error( httpResponse.statusCode, 'not 200 response', 'getVehicleTrass request' );
+    resolve(trassNotChanged && true);
   }
   else
   {
     if ( body !== trass )
     { // smth changed
       db.putTrasses(body, busCode, timestamp);
+      extractStopsFromTrass(body, busCode);
+      resolve(trassNotChanged && false);
+    }
+    else
+    {
+      resolve(trassNotChanged && true);
     }
   }
-  resolve();
+}
+
+/**
+ * extract stops from a bus trass
+ */
+function extractStopsFromTrass(body: string, busCode: string): void
+{
+  try
+  {
+    let points: any [] = JSON.parse(body).trasses[0].r[0].u;
+    points = points.filter(filterStops);
+    for ( let point of points )
+    {
+      if ( !stops[point.id] )
+      {
+        stops[point.id] =
+        {
+          id: point.id,
+          n: point.n,
+          lat: point.lat,
+          lng: point.lng,
+          vehicles: {}
+        };
+      }
+      stops[point.id].vehicles[busCode] = true;
+
+      if ( !busStops[busCode] )
+      {
+        busStops[busCode] = {};
+      }
+      busStops[busCode][point.id] = true;
+    }
+    stopsTimestamp = Date.now();
+  }
+  catch (err)
+  {
+    console.error(err, extractStopsFromTrass);
+  };
+}
+
+function filterStops(e: any)
+{
+  return e['id'];
+}
+
+function loadStopsFromDb(): Promise<boolean>
+{
+  function main(resolve: any)
+  {
+    db.getStops()
+    .then(
+      ({stopsDb, busStopsDb, timestamp}:
+        {stopsDb: { [stopId: string]: Stop }, busStopsDb: BusStops, timestamp: number}
+      ) =>
+      {
+        stops = stopsDb;
+        busStops = busStopsDb;
+        stopsTimestamp = timestamp;
+        resolve(true);
+      }
+    )
+    .catch(
+      (err: Error) =>
+      {
+        console.error(err, 'loadStopsFromDb');
+        stops = {};
+        busStops = {};
+        stopsTimestamp = 0;
+        resolve(true);
+      }
+    );
+  }
+  return new bb( main );
 }

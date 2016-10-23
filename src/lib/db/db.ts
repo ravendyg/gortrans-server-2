@@ -13,7 +13,8 @@ const DB = mainDb();
 const db =
 {
   putRoutes, getRoutes,
-  putTrasses, getTrass, getTrasses, getLatestTrass
+  putTrasses, getTrass, getTrasses, getLatestTrass,
+  putStopsInDb, getStops
 };
 
 export { db };
@@ -200,7 +201,67 @@ function getLatestTrass(): Promise<any>
   return new bb( main );
 }
 
+function putStopsInDb(
+  stopsDb: { [stopId: string]: Stop }, busStopsDb: BusStops,
+  timestamp: number
+): void
+{
+  DB.then(
+    (db: any) =>
+    {
+      db.collection(config.SYNC_COLLECTION_NAME)
+      .update(
+        {
+          type: 'stops'
+        },
+        {
+          $set:
+          {
+            type: 'stops',
+            timestamp,
+            stopsDb,
+            busStopsDb
+          }
+        },
+        { upsert: true },
+        updateErrorHandler
+      );
+    }
+  );
+}
+
+function getStops():
+  Promise<{stopsDb: { [stopId: string]: Stop }, busStopsDb: BusStops, timestamp: number}>
+{
+  function main( resolve: any )
+  {
+    DB.then(
+      (db: any) =>
+        db.collection(config.SYNC_COLLECTION_NAME)
+        .findOne(
+          {
+            type: 'stops'
+          },
+          { type: 0, _id: 0 },
+          (err: Error, res: any) =>
+          {
+            if ( err )
+            {
+              console.error( err, 'getLatestTrass');
+              resolve({stopsDb: {}, busStopsDb: {}, timestamp: 0});
+            }
+            else
+            {
+              resolve(res || {stopsDb: {}, busStopsDb: {}, timestamp: 0});
+            }
+          }
+        )
+    );
+  }
+  return new bb( main );
+}
+
 function updateErrorHandler( err: Error )
 {
-	if ( err ) { console.error(err); }
+  if ( err ) { console.error(err); }
 }

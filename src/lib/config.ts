@@ -23,7 +23,8 @@ const config: any = {
 
   TRASS_DATA_VALID_FOR: 1000 * 60 * 60 * 24,
 
-  TEST_BUSES_FOO: (e: any) => e.match(/1-036-W/) || e.match(/1-045-W/) || e.match(/1-264-W/)
+  TEST_BUSES_FOO: (e: any) => e.match(/1-036-W/) || e.match(/1-045-W/) || e.match(/1-264-W/) ||
+    e.match(/2-2-W-2/) || e.match(/3-0013-W-13/) || e.match(/8-7-W-7/)
 };
 
 export { config };

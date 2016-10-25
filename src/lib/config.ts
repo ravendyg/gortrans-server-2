@@ -16,6 +16,7 @@ const config: any = {
   NSK_ROUTES:   NSK_BASE_URL + 'listmarsh.php?r&r=true',
   NSK_BUSES:    NSK_BASE_URL + 'markers.php?r=',
   NSK_TRASSES:  NSK_BASE_URL + 'trasses.php?r=',
+  NSK_FORECAST: NSK_BASE_URL + 'forecast.php?',
 
 
   DATA_RETRIEVAL_PERIOD: 1000 * 30, // in miliseconds

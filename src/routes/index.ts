@@ -3,6 +3,9 @@
 
 const express = require('express');
 const router = express.Router();
+const request = require('request');
+
+import { config } from '../lib/config';
 
 import {Promise} from 'es6-promise';
 import * as bb from 'bluebird';
@@ -100,6 +103,23 @@ router.route('/list-of-route-codes').get(
         res.json({data: {routeCodes: [], timestamp: +req.query.timestamp || 0}});
       }
     );
+  }
+);
+
+/** stop forecast
+ * just pass through
+ */
+router.route('/stop-schedule').get(
+  (req: any, res: any) =>
+  {
+    request(
+      {
+        url: config.PROXY_URL,
+        method: 'GET',
+        qs: { url: encodeURI( `${config.NSK_FORECAST}id=${req.query.stopId}&type=platform` ) }
+      }
+    )
+    .pipe(res);
   }
 );
 

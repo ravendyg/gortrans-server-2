@@ -215,8 +215,8 @@ function resetSchedule()
       ( {routeCodes, timestamp}: {routeCodes: string [], timestamp: number} ) => {
 
         schedule = {};
-// debug limit
-routeCodes = routeCodes.filter( config.TEST_BUSES_FOO );
+        // remove buses we are not interested in
+        routeCodes = routeCodes.filter( config.FILTER_BUSES_OUT );
         for ( let i = 0; i < routeCodes.length; i++ ) {
           schedule[ routeCodes[i] ] =
           {

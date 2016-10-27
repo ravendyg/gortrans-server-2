@@ -247,8 +247,8 @@ bb.all([
 .then(
   () =>
   {
-// debug limit
-routeCodes = routeCodes.filter( config.TEST_BUSES_FOO );
+    // remove buses we are not interested in
+    routeCodes = routeCodes.filter( config.FILTER_BUSES_OUT );
 
     routeCodes.reduce(
       ( acc: Promise<any>, busCode: string ) =>

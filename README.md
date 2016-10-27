@@ -4,8 +4,6 @@ Plan to centralize data collection and then distribute them using sockets.
 
 Rewrite mobile app using Java.
 
-Use existing Ionic 2 app as a desktop version;
-
 &nbsp;
 
 ### Dependecies

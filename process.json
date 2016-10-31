@@ -2,7 +2,7 @@
   "apps" :
   [
     {
-      "name"          : "gortrans-web",
+      "name"          : "gortrans2",
       "script"        : "./bin/www",
       "watch"         : false,
       "ignore_watch"  : [".git", "node_modules", "private", "public", "test-dumps", "tests", "typings"],

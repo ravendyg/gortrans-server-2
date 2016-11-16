@@ -2,7 +2,7 @@
 'use strict';
 
 let io: SocketIO.Server;
-import { subscribe, getCurrentState, tryToRescheduleCheck } from '../../process/data-provider';
+import { subscribe, getCurrentState, addBusToSchedule, removeBusFromSchedule } from '../../process/data-provider';
 
 let listOfClients: {[socketId: string]: SocketClient} = {};
 let listOfBusListeners: {[bus: string]: {ids: {[socketId: string]: boolean}}} = {};
@@ -25,7 +25,7 @@ function start(server: any)
 
       socket.on( 'disconnect', disconnect.bind(this, socket) );
 
-      socket.on( 'add bus listener', addBusListenere.bind(this, socket) );
+      socket.on( 'add bus listener', addBusListener.bind(this, socket) );
 
       socket.on( 'remove bus listener', removeBusListener.bind(this, socket) );
     }
@@ -79,7 +79,7 @@ function disconnect(socket: SocketIO.Socket)
   delete listOfClients[socket.id];
 }
 
-function addBusListenere(socket: SocketIO.Socket, busCode: string)
+function addBusListener(socket: SocketIO.Socket, busCode: string)
 {
   // register listener
   listOfClients[socket.id].buses[busCode] = true;
@@ -89,7 +89,7 @@ function addBusListenere(socket: SocketIO.Socket, busCode: string)
   }
   listOfBusListeners[busCode].ids[socket.id] = true;
 
-  tryToRescheduleCheck(busCode);
+  addBusToSchedule(busCode);
 
   // send current state
   let _state: State = {};
@@ -106,6 +106,10 @@ function removeBusListener(socket: SocketIO.Socket, code: string)
   {
     delete listOfClients[socket.id].buses[code];
     delete listOfBusListeners[code].ids[socket.id];
+    if ( Object.keys(listOfBusListeners[code].ids).length === 0 )
+    {
+      removeBusFromSchedule(code);
+    }
   }
   catch (err)
   {

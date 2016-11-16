@@ -68,7 +68,7 @@ function getListOfRouteCodes( timestamp: number ): Promise<{routeCodes: string [
 }
 
 /**
- * check when route list has been updaed last time
+ * check when route list has been updated last time
  * if more then a day ago refresh
  * then resolve list of routes ro just their codes
  */

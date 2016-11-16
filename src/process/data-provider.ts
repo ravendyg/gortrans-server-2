@@ -18,9 +18,13 @@ const dataProvider =
 {
   startProcess, subscribe
 };
-export { dataProvider, subscribe, getCurrentState, tryToRescheduleCheck };
+export { dataProvider, subscribe, getCurrentState,
+  addBusToSchedule, removeBusFromSchedule };
 
-let schedule: Schedule;
+// let schedule: Schedule;
+let schedule: {[busCode: string]: boolean} = {};
+
+let rescheduleId: any;
 
 let currentState: State = {};
 let newState: State = {};
@@ -36,15 +40,9 @@ emitter.on(
  * start with the server
  * daily check list of routes
  */
-function startProcess() {
-  resetSchedule()
-  .then( fetchData )
-  .catch(
-    () =>
-    {
-      scheduleNextRun();
-    }
-  );
+function startProcess()
+{
+  fetchData();
 }
 module.exports.startProcess = startProcess;
 
@@ -52,11 +50,21 @@ module.exports.startProcess = startProcess;
  * put this bus on the next scheduled fetch
  * call if smbd requested it's data
  */
-function tryToRescheduleCheck( busCode: string ): void
+function addBusToSchedule( busCode: string ): void
 {
-  if ( schedule[busCode] && schedule[busCode].nextRun > 1 )
+  if ( !schedule[busCode] )
   {
-    schedule[busCode].nextRun = 1;
+    schedule[busCode] = true;
+    clearTimeout(rescheduleId);
+    fetchData();
+  }
+}
+
+function removeBusFromSchedule( busCode: string ): void
+{
+  if ( schedule[busCode] )
+  {
+    delete schedule[busCode];
   }
 }
 
@@ -68,19 +76,16 @@ function fetchData()
   let calls = [ bb.resolve() ];  // in case no calls required
 
   let keyList: string [] = [];
-  for ( let key in schedule )
+  for ( let busCode of Object.keys(schedule) )
   {
-    if ( --schedule[key].nextRun <= 0 )
-    {
-      keyList.push( key );
+    keyList.push( busCode );
 
-      if ( keyList.length === 5 )
-      {
-        calls.push(
-          gortrans.getListOfAvailableBuses( keyList.join('|') )
-        );
-        keyList = [];
-      }
+    if ( keyList.length === 5 )
+    {
+      calls.push(
+        gortrans.getListOfAvailableBuses( keyList.join('|') )
+      );
+      keyList = [];
     }
   }
 
@@ -106,24 +111,6 @@ function fetchData()
 function processBusData (data: {[busCode: string]: busData []} []): StateChanges
 {
   data = data.slice(1); // remove initial Promise.resolve
-  for ( let buses of data )
-  {
-    for ( let busCode of Object.keys(buses) )
-    {
-      if ( buses[busCode].length === 0 )
-      { // no buses
-        if ( schedule[busCode].numberOfEmptyRuns < 7 )
-        { // some limit against infinity
-          schedule[busCode].numberOfEmptyRuns++;
-        }
-      }
-      else
-      {
-        schedule[busCode].numberOfEmptyRuns = 0;
-      }
-      schedule[busCode].nextRun = Math.pow(2, schedule[busCode].numberOfEmptyRuns);
-    }
-  }
 
   let changes: StateChanges = {};
 
@@ -194,48 +181,16 @@ function scheduleNextRun()
   let now = Date.now();
   let untilNextTime =
     Math.ceil( now / config.DATA_RETRIEVAL_PERIOD ) * config.DATA_RETRIEVAL_PERIOD - now;
-  setTimeout(
-    () =>
-    {
-      emitter.emit('data provider next run');
-    },
-    untilNextTime
-  );
-}
-
-
-/**
- * reset schedule object
- */
-function resetSchedule()
-{
-  function main( resolve: any, reject: any ) {
-    gortrans.getListOfRouteCodes(0)
-    .then(
-      ( {routeCodes, timestamp}: {routeCodes: string [], timestamp: number} ) => {
-
-        schedule = {};
-        // remove buses we are not interested in
-        routeCodes = routeCodes.filter( config.FILTER_BUSES_OUT );
-        for ( let i = 0; i < routeCodes.length; i++ ) {
-          schedule[ routeCodes[i] ] =
-          {
-            nextRun: 1,
-            numberOfEmptyRuns: 0
-          };
-        }
-
-        resolve();
-      }
-    )
-    .catch(
-      ( err: ExpressError ) => {
-        reject(err);
-      }
+  rescheduleId =
+    setTimeout(
+      () =>
+      {
+        emitter.emit('data provider next run');
+      },
+      untilNextTime
     );
-  }
-  return new bb( main );
 }
+
 
 function notifyListeners(changes: StateChanges)
 {

@@ -32,12 +32,12 @@ gulp.task('compile-ts', function () {
 
 
   var tsResult = gulp.src(sourceTsFiles)
-                       .pipe(sourcemaps.init())
+                      //  .pipe(sourcemaps.init())
                        .pipe( tsProject( tsc.reporter.fullReporter(true)) );
 
   tsResult.dts.pipe(gulp.dest(config.tsOutputPath));
   return tsResult.js
-         .pipe(sourcemaps.write('.'))
+        //  .pipe(sourcemaps.write('.'))
          .pipe(gulp.dest(config.tsOutputPath));
 });
 
@@ -47,7 +47,7 @@ gulp.task('compile-ts', function () {
 gulp.task('clean-ts', function (cb) {
   var typeScriptGenFiles = [
     config.tsOutputPath +'/**/*.js',    // path to all JS files auto gen'd by editor
-    config.tsOutputPath +'/**/*.js.map', // path to all sourcemap files auto gen'd by editor
+    // config.tsOutputPath +'/**/*.js.map', // path to all sourcemap files auto gen'd by editor
     '!' + config.tsOutputPath + '/lib2'
   ];
 

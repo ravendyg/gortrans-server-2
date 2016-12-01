@@ -9,9 +9,35 @@ let listOfBusListeners: {[bus: string]: {ids: {[socketId: string]: boolean}}} = 
 
 let socket: SocketIO.Socket;
 
+// log connections every 1 hour
+setTimeout(logConnection, 1000 * 60);
+setInterval(logConnection, 1000 * 60 * 60);
+function logConnection()
+{
+  for (let clientId of Object.keys(listOfClients))
+  {
+    console.log(clientId + ': ' + listOfClients[clientId].connected, listOfClients[clientId].buses);
+  }
+}
+
 function start(server: any)
 {
   io = require('socket.io')(server);
+
+  // filter some crap
+  io.use(
+    (socket, next) =>
+    {
+      if (!socket.handshake.headers['host'].match('.nskgortrans.info'))
+      { // temporarily block everything from other domains
+        next(new Error(''));
+      }
+      else
+      {
+        next();
+      }
+    }
+  );
 
   io.on(
     'connection',
@@ -20,6 +46,7 @@ function start(server: any)
       listOfClients[socket.id] =
       {
         socket,
+        connected: Date.now(),
         buses: {}
       };
 

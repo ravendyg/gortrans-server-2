@@ -7,8 +7,7 @@ const request = require('request');
 
 import { config } from '../lib/config';
 
-import {Promise} from 'es6-promise';
-import * as bb from 'bluebird';
+import * as Bluebird from 'bluebird';
 
 import { gortrans } from '../lib/services/nskgortrans';
 import { db } from '../lib/db/db';
@@ -24,7 +23,7 @@ router.route('/sync').get(
     let routesTimestamp = +req.query.routestimestamp || 0;
     let trassesTimestamp = +req.query.trassestimestamp || 0;
     let stopsTimestamp = +req.query.stopstimestamp || 0;
-    bb.all([
+    Bluebird.all([
       gortrans.getListOfRoutes(routesTimestamp),
       db.getTrasses(trassesTimestamp),
       db.getLatestTrass(),

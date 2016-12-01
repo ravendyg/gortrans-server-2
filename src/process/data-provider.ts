@@ -4,9 +4,8 @@
 const request = require('request');
 const events = require('events');
 const emitter = new events.EventEmitter();
-const bb = require('bluebird');
 
-import {Promise} from 'es6-promise';
+import * as Bluebird from 'bluebird';
 
 import { config } from '../lib/config';
 import { errServ } from '../lib/error';
@@ -73,7 +72,7 @@ function removeBusFromSchedule( busCode: string ): void
  */
 function fetchData()
 {
-  let calls = [ bb.resolve() ];  // in case no calls required
+  let calls: Bluebird<indexedBusData> [] = [ Bluebird.resolve({}) ];  // in case no calls required
 
   let keyList: string [] = [];
   for ( let busCode of Object.keys(schedule) )
@@ -96,7 +95,7 @@ function fetchData()
     );
   }
 
-  return bb.all( calls )
+  return Bluebird.all( calls )
   .then( processBusData )
   .then( notifyListeners )
   .catch(
@@ -110,7 +109,7 @@ function fetchData()
 
 function processBusData (data: {[busCode: string]: busData []} []): StateChanges
 {
-  data = data.slice(1); // remove initial Promise.resolve
+  data = data.slice(1); // remove initial Bluebird.resolve
 
   let changes: StateChanges = {};
 

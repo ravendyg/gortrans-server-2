@@ -85,6 +85,7 @@ declare type Subscribers =
 declare type SocketClient =
 {
   socket: SocketIO.Socket;
+  connected: number,
   buses:
   {
     [id: string]: boolean

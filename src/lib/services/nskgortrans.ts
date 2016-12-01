@@ -3,8 +3,7 @@
 
 const request = require('request');
 
-import {Promise} from 'es6-promise';
-import * as bb from 'bluebird';
+import * as Bluebird from 'bluebird';
 
 import { config } from '../config';
 import { errServ } from '../error';
@@ -30,16 +29,16 @@ let stopsTimestamp: number = 0;
 /**
  * get list of routes
  */
-function getListOfRoutes( timestamp: number ): Promise<{routes: ListMarsh [], timestamp: number}>
+function getListOfRoutes( timestamp: number ): Bluebird<{routes: ListMarsh [], timestamp: number}>
 {
-  let out: Promise<{routes: ListMarsh [], timestamp: number}> =
-    new bb( getListOfRoutesPromise.bind(this, timestamp) )
+  let out: Bluebird<{routes: ListMarsh [], timestamp: number}> =
+    new Bluebird( getListOfRoutesPromise.bind(this, timestamp) )
     .then(
       () =>
       {
         return timestamp >= routesTimestamp
-          ? bb.resolve({routes: [], timestamp})  // up to date
-          : bb.resolve({routes, timestamp: routesTimestamp})
+          ? Bluebird.resolve({routes: [], timestamp})  // up to date
+          : Bluebird.resolve({routes, timestamp: routesTimestamp})
           ;
       }
     );
@@ -50,16 +49,16 @@ function getListOfRoutes( timestamp: number ): Promise<{routes: ListMarsh [], ti
 /**
  * get list of rout codes
  */
-function getListOfRouteCodes( timestamp: number ): Promise<{routeCodes: string [], timestamp: number}>
+function getListOfRouteCodes( timestamp: number ): Bluebird<{routeCodes: string [], timestamp: number}>
 {
-  let out: Promise<{routeCodes: string [], timestamp: number}> =
-    new bb( getListOfRoutesPromise.bind(this, timestamp) )
+  let out: Bluebird<{routeCodes: string [], timestamp: number}> =
+    new Bluebird( getListOfRoutesPromise.bind(this, timestamp) )
     .then(
       () =>
       {
         return timestamp >= routesTimestamp
-          ? bb.resolve({routeCodes: [], timestamp})  // up to date
-          : bb.resolve({routeCodes, timestamp: routesTimestamp})
+          ? Bluebird.resolve({routeCodes: [], timestamp})  // up to date
+          : Bluebird.resolve({routeCodes, timestamp: routesTimestamp})
           ;
       }
     );
@@ -171,12 +170,12 @@ function refreshRoutesInDb( newRoutes: string, timestamp: number, resolve: any )
  * get list of buses out there
  * @codes: string // concatenated codes
  */
-function getListOfAvailableBuses( codes: string ): Promise<indexedBusData>
+function getListOfAvailableBuses( codes: string ): Bluebird<indexedBusData>
 {
-  return new bb( getListOfAvailableBusesPromise.bind( this, codes ) );
+  return new Bluebird( getListOfAvailableBusesPromise.bind( this, codes ) ) as Bluebird<indexedBusData>;
 }
 
-function getListOfAvailableBusesPromise( codes: string, resolve: any, reject: any )
+function getListOfAvailableBusesPromise( codes: string, resolve: (res: indexedBusData) => void, reject: (err: any) => void )
 {
   request(
     {
@@ -189,18 +188,18 @@ function getListOfAvailableBusesPromise( codes: string, resolve: any, reject: an
 }
 
 function getListOfAvailableBusesHandler(
-  resolve: any, reject: any, codesQuery: string,
+  resolve: (res: indexedBusData) => indexedBusData, reject: (err: any) => any, codesQuery: string,
   err: ExpressError, httpResponse: any, body: string): void
 {
   if ( err )
   {
     console.error( err, 'getListOfAvailableBuses request' );
-    resolve({});
+    resolve(<indexedBusData>{});
   }
   else if ( httpResponse.statusCode !== 200 )
   {
     console.error( httpResponse.statusCode, 'not 200 response', 'getListOfAvailableBuses request' );
-    resolve({});
+    resolve(<indexedBusData>{});
   }
   else
   {
@@ -240,7 +239,7 @@ function getListOfAvailableBusesHandler(
 
 
 // initial load of vehicle trasses
-bb.all([
+Bluebird.all([
   getListOfRoutes(0),
   loadStopsFromDb()
 ])
@@ -251,12 +250,12 @@ bb.all([
     routeCodes = routeCodes.filter( config.FILTER_BUSES_OUT );
 
     routeCodes.reduce(
-      ( acc: Promise<any>, busCode: string ) =>
+      ( acc: Bluebird<any>, busCode: string ) =>
       {
         return acc.then(
           (trassNotChanged: boolean) =>
           {
-            return new bb(
+            return new Bluebird(
               (resolve: any) =>
               { // check whether it's in the db
                 db.getTrass( 0, busCode )
@@ -279,7 +278,7 @@ bb.all([
           }
         );
       },
-      bb.resolve(true)
+      Bluebird.resolve(true)
     )
     .then(
       (trassNotChanged: boolean) =>
@@ -288,7 +287,7 @@ bb.all([
         {
           db.putStopsInDb(stops, busStops, stopsTimestamp);
         }
-        return bb.resolve();
+        return Bluebird.resolve();
       }
     )
     .catch(
@@ -390,9 +389,9 @@ function filterStops(e: any)
   return e['id'];
 }
 
-function loadStopsFromDb(): Promise<boolean>
+function loadStopsFromDb(): Bluebird<boolean>
 {
-  function main(resolve: any)
+  function main(resolve: (res: any) => boolean)
   {
     db.getStops()
     .then(
@@ -417,21 +416,21 @@ function loadStopsFromDb(): Promise<boolean>
       }
     );
   }
-  return new bb( main );
+  return new Bluebird( main );
 }
 
 function getStops(timestamp: number):
-Promise<{stops: { [stopId: string]: Stop }, busStops: BusStops, timestamp: number}>
+Bluebird<{stops: { [stopId: string]: Stop }, busStops: BusStops, timestamp: number}>
 {
   if (timestamp < stopsTimestamp)
   {
-    return bb.resolve(
+    return Bluebird.resolve(
       {stops, busStops, timestamp: stopsTimestamp}
     );
   }
   else
   {
-    return bb.resolve(
+    return Bluebird.resolve(
       {stops: {}, busStops: {}, timestamp}
     );
   }

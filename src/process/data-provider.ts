@@ -23,7 +23,8 @@ export { dataProvider, subscribe, getCurrentState,
 // let schedule: Schedule;
 let schedule: {[busCode: string]: boolean} = {};
 
-let rescheduleId: any;
+let rescheduleId: any = {};
+rescheduleId['_called'] = true;
 
 let currentState: State = {};
 let newState: State = {};
@@ -54,7 +55,6 @@ function addBusToSchedule( busCode: string ): void
   if ( !schedule[busCode] )
   {
     schedule[busCode] = true;
-    clearTimeout(rescheduleId);
     fetchData();
   }
 }
@@ -180,14 +180,21 @@ function scheduleNextRun()
   let now = Date.now();
   let untilNextTime =
     Math.ceil( now / config.DATA_RETRIEVAL_PERIOD ) * config.DATA_RETRIEVAL_PERIOD - now;
-  rescheduleId =
-    setTimeout(
-      () =>
-      {
-        emitter.emit('data provider next run');
-      },
-      untilNextTime
-    );
+  if (rescheduleId._called)
+  {
+    rescheduleId =
+      setTimeout(
+        () =>
+        {
+          emitter.emit('data provider next run');
+        },
+        untilNextTime
+      );
+  }
+  else
+  {
+    // already scheduled, do nothing
+  }
 }
 
 

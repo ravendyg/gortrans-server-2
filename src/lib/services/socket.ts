@@ -101,6 +101,10 @@ function disconnect(socket: SocketIO.Socket)
     if ( listOfBusListeners[bus] )
     {
       delete listOfBusListeners[bus].ids[ socket.id ];
+      if ( Object.keys(listOfBusListeners[bus].ids).length === 0 )
+      {
+        removeBusFromSchedule(bus);
+      }
     }
   }
   delete listOfClients[socket.id];

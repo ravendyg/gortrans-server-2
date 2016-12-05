@@ -10,6 +10,7 @@ import { config } from '../lib/config';
 import * as Bluebird from 'bluebird';
 
 import { gortrans } from '../lib/services/nskgortrans';
+import { getCurrentState } from '../process/data-provider';
 import { db } from '../lib/db/db';
 
 const errSrev = require('../lib/error');
@@ -119,6 +120,27 @@ router.route('/stop-schedule').get(
       }
     )
     .pipe(res);
+  }
+);
+
+/**
+ * bus rasp
+ */
+router.route('/bus-rasp').get(
+  (req: any, res: any) =>
+  {
+    var rasp: string;
+    var graphs: any = getCurrentState(req.query.busCode);
+    if (graphs)
+    {
+      var data: busData = graphs[req.query.graph];
+      if (data)
+      {
+        rasp = data.rasp;
+      }
+    }
+
+    res.json({rasp});
   }
 );
 

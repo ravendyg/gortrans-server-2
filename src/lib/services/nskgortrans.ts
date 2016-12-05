@@ -153,9 +153,17 @@ function refreshRoutesInDb( newRoutes: string, timestamp: number, resolve: any )
     {
       if ( res.routes !== newRoutes )
       {
-        routesTimestamp = timestamp;
-        resolve(true);
-        db.putRoutes( newRoutes, timestamp );
+        try
+        {
+          var temp = JSON.parse(newRoutes);
+          routesTimestamp = timestamp;
+          resolve(true);
+          db.putRoutes( newRoutes, timestamp );
+        }
+        catch (err)
+        {
+          resolve(false);
+        }
       }
       else
       {
@@ -335,9 +343,17 @@ function getVehicleTrassResponseHandler(
   {
     if ( body !== trass )
     { // smth changed
-      db.putTrasses(body, busCode, timestamp);
-      extractStopsFromTrass(body, busCode);
-      resolve(trassNotChanged && false);
+      try
+      { // check that data are valid JSON
+        var temp = JSON.parse(body);
+        db.putTrasses(body, busCode, timestamp);
+        extractStopsFromTrass(body, busCode);
+        resolve(trassNotChanged && false);
+      }
+      catch (err)
+      {
+        resolve(trassNotChanged && true);
+      }
     }
     else
     {

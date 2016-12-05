@@ -60,10 +60,10 @@ declare type busData =
   lng: number,
   time_nav: number,
   azimuth: number,
-  rasp: string,
+  rasp?: string,
   speed: number,
-  segment_order: string,
-  ramp: string
+  segment_order?: string,
+  ramp?: string
 };
 
 declare type indexedBusData =

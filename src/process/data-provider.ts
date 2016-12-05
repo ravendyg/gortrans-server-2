@@ -200,9 +200,22 @@ function scheduleNextRun()
 
 function notifyListeners(changes: StateChanges)
 {
+  let changesReduced: StateChanges = {};
+  for (let code of Object.keys(changes))
+  {
+    changesReduced[code] = {add: {}, update: {}, remove: changes[code].remove};
+    for (let graph of Object.keys(changes[code].add))
+    {
+      changesReduced[code].add[graph] = copyBusDataReduced(changes[code].add[graph]);
+    }
+    for (let graph of Object.keys(changes[code].update))
+    {
+      changesReduced[code].update[graph] = copyBusDataReduced(changes[code].update[graph]);
+    }
+  }
   for ( let key of Object.keys(subscribers) )
   {
-    subscribers[key]( changes );
+    subscribers[key]( changesReduced );
   }
 }
 
@@ -218,6 +231,23 @@ function subscribe( cb: ( changes: StateChanges ) => void ): () => void
  * return current state for given code
  */
 function getCurrentState(busCode: string)
-{
+{ // don't reduce current state, since it's also used by raps providing route
+  // can survive with that much data overhead
   return currentState[ busCode ] || {};
+}
+
+function copyBusDataReduced(data: busData): busData
+{
+  return {
+    azimuth: data.azimuth,
+    title: data.title,
+    id_typetr: data.id_typetr,
+    marsh: data.marsh,
+    direction: data.direction,
+    graph: data.graph,
+    lat: data.lat,
+    lng: data.lng,
+    time_nav: data.time_nav,
+    speed: data.speed
+  };
 }

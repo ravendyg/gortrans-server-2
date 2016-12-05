@@ -4,7 +4,7 @@
 const NSK_BASE_URL = 'http://maps.nskgortrans.ru/';
 
 const config: any = {
-  PORT: 3013,
+  PORT: 3023,
 
   MONGO_HOST: 'mongodb://localhost:27017',
 	DB_NAME: 'gortrans2',

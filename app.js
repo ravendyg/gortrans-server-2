@@ -1,4 +1,3 @@
-/// <reference path="./src/lib/index.d.ts" />
 /* global __dirname */
 'use strict';
 
@@ -11,7 +10,7 @@ var bodyParser = require('body-parser');
 
 var app = express();
 
-const routes = require('./build/routes');
+const routes = require('./src/routes');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -38,8 +37,6 @@ app.use(function(req, res, next) {
 // error handlers
 
 // production error handler
-// no stacktraces leaked to user
-
 app.use(
   function(err, req, res, next)
   {
@@ -63,5 +60,5 @@ module.exports = app;
 
 
 // process
-const dataProvider = require('./build/process/data-provider');
+const dataProvider = require('./src/process/data-provider');
 dataProvider.startProcess();

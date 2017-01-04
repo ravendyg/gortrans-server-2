@@ -1,12 +1,11 @@
-/// <reference path="../lib/index.d.ts" />
 'use strict';
 
-function hasKeys( obj: any ): boolean
+function hasKeys( obj )
 {
 	return Object.keys( obj ).length > 0;
 }
 
-function flatArrayToDict( acc: any, e: any): any
+function flatArrayToDict( acc, e)
 {
 	for ( let key of Object.keys(e) )
 	{
@@ -15,16 +14,16 @@ function flatArrayToDict( acc: any, e: any): any
 	return acc;
 }
 
-function busListToDict( acc: any, bus: busData ): any
+function busListToDict(acc, bus)
 {
 	acc[ bus.graph ] = bus;
 	return acc;
 }
 
 
-const utils: any =
+const utils =
 {
   hasKeys, flatArrayToDict
 };
 
-export { utils };
+module.exports = utils;

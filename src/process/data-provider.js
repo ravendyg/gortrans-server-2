@@ -1,40 +1,40 @@
-/// <reference path="../lib/index.d.ts" />
 'use strict';
 
 const request = require('request');
 const events = require('events');
 const emitter = new events.EventEmitter();
 
-import * as Bluebird from 'bluebird';
+const Bluebird = require('bluebird');
 
-import { config } from '../lib/config';
-import { errServ } from '../lib/error';
-import { utils } from '../lib/utils';
+const config = require('../lib/config');
+const errorServ = require('../lib/error');
+const utils = require('../lib/utils');
 
-import { gortrans } from '../lib/services/nskgortrans';
+const gortrans = require('../lib/services/nskgortrans');
 
-const dataProvider =
+
+module.exports =
 {
-  startProcess, subscribe
+  startProcess,
+  subscribe,
+  addBusToSchedule, removeBusFromSchedule,
+  getCurrentState
 };
-export { dataProvider, subscribe, getCurrentState,
-  addBusToSchedule, removeBusFromSchedule };
 
-// let schedule: Schedule;
-let schedule: {[busCode: string]: boolean} = {};
+let schedule = {};
 
-let rescheduleId: any = {};
+let rescheduleId = {};
 rescheduleId['_called'] = true;
 
-let currentState: State = {};
-let newState: State = {};
+let currentState = {};
+let newState = {};
 
-let subscribers: Subscribers = {};
+let subscribers = {};
 
-emitter.on(
-  'data provider next run',
-  fetchData
-);
+// emitter.on(
+//   'data provider next run',
+//   fetchData
+// );
 
 /**
  * start with the server
@@ -44,13 +44,12 @@ function startProcess()
 {
   fetchData();
 }
-module.exports.startProcess = startProcess;
 
 /**
  * put this bus on the next scheduled fetch
  * call if smbd requested it's data
  */
-function addBusToSchedule( busCode: string ): void
+function addBusToSchedule( busCode )
 {
   if ( !schedule[busCode] )
   {
@@ -59,7 +58,7 @@ function addBusToSchedule( busCode: string ): void
   }
 }
 
-function removeBusFromSchedule( busCode: string ): void
+function removeBusFromSchedule( busCode )
 {
   if ( schedule[busCode] )
   {
@@ -72,9 +71,9 @@ function removeBusFromSchedule( busCode: string ): void
  */
 function fetchData()
 {
-  let calls: Bluebird<indexedBusData> [] = [ Bluebird.resolve({}) ];  // in case no calls required
+  let calls = [ Bluebird.resolve({}) ];  // in case no calls required
 
-  let keyList: string [] = [];
+  let keyList = [];
   for ( let busCode of Object.keys(schedule) )
   {
     keyList.push( busCode );
@@ -99,7 +98,7 @@ function fetchData()
   .then( processBusData )
   .then( notifyListeners )
   .catch(
-    (err: ExpressError) =>
+    (err) =>
     {
       console.error( err, 'fetch data');
       scheduleNextRun();
@@ -107,15 +106,15 @@ function fetchData()
   );
 }
 
-function processBusData (data: {[busCode: string]: busData []} []): StateChanges
+function processBusData (data)
 {
   data = data.slice(1); // remove initial Bluebird.resolve
 
-  let changes: StateChanges = {};
+  let changes = {};
 
   if ( data.length > 0 )
   { // send data to socket delivery service
-    newState = <any>
+    newState =
       data
       .filter( utils.hasKeys )
       .reduce( utils.flatArrayToDict, {} );
@@ -198,9 +197,9 @@ function scheduleNextRun()
 }
 
 
-function notifyListeners(changes: StateChanges)
+function notifyListeners(changes)
 {
-  let changesReduced: StateChanges = {};
+  let changesReduced = {};
   for (let code of Object.keys(changes))
   {
     changesReduced[code] = {add: {}, update: {}, remove: changes[code].remove};
@@ -219,7 +218,7 @@ function notifyListeners(changes: StateChanges)
   }
 }
 
-function subscribe( cb: ( changes: StateChanges ) => void ): () => void
+function subscribe( cb )
 {
   let key = Date.now().toString() + Math.random();
   subscribers[ key ] = cb;
@@ -230,13 +229,13 @@ function subscribe( cb: ( changes: StateChanges ) => void ): () => void
 /**
  * return current state for given code
  */
-function getCurrentState(busCode: string)
+function getCurrentState(busCode)
 { // don't reduce current state, since it's also used by raps providing route
   // can survive with that much data overhead
   return currentState[ busCode ] || {};
 }
 
-function copyBusDataReduced(data: busData): busData
+function copyBusDataReduced(data)
 {
   return {
     azimuth: data.azimuth,

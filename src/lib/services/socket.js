@@ -1,13 +1,13 @@
-/// <reference path="../index.d.ts" />
 'use strict';
 
-let io: SocketIO.Server;
-import { subscribe, getCurrentState, addBusToSchedule, removeBusFromSchedule } from '../../process/data-provider';
+const dataProvider = require('../../process/data-provider');
 
-let listOfClients: {[socketId: string]: SocketClient} = {};
-let listOfBusListeners: {[bus: string]: {ids: {[socketId: string]: boolean}}} = {};
+let io;
 
-let socket: SocketIO.Socket;
+let listOfClients = {};
+let listOfBusListeners = {};
+
+let socket;
 
 // log connections every 1 hour
 setTimeout(logConnection, 1000 * 60);
@@ -20,7 +20,7 @@ function logConnection()
   }
 }
 
-function start(server: any)
+function start(server)
 {
   io = require('socket.io')(server);
 
@@ -28,7 +28,7 @@ function start(server: any)
   io.use(
     (socket, next) =>
     {
-      if (!socket.handshake.headers['host'].match('.nskgortrans.info'))
+      if (!socket.handshake.headers['host'].match('.nskgortrans.info') && !socket.handshake.headers['host'].match('192.168'))
       { // temporarily block everything from other domains
         next(new Error(''));
       }
@@ -41,7 +41,7 @@ function start(server: any)
 
   io.on(
     'connection',
-    (socket: SocketIO.Socket) =>
+    (socket) =>
     {
       listOfClients[socket.id] =
       {
@@ -58,12 +58,12 @@ function start(server: any)
     }
   );
 
-  subscribe(
-    (changes: StateChanges) =>
+  dataProvider.subscribe(
+    (changes) =>
     {
       for ( let socketId of Object.keys(listOfClients) )
       {
-        let parcel: StateChanges = {};
+        let parcel = {};
         let dispatchRequired = false;
         for ( let busCode of Object.keys(listOfClients[socketId].buses) )
         {
@@ -93,9 +93,9 @@ module.exports.start = start;
 
 
 
-function disconnect(socket: SocketIO.Socket)
+function disconnect(socket)
 {
-  let listOfBuses: string [] = Object.keys( listOfClients[socket.id].buses );
+  let listOfBuses = Object.keys( listOfClients[socket.id].buses );
   for ( let bus of listOfBuses )
   {
     if ( listOfBusListeners[bus] )
@@ -103,14 +103,14 @@ function disconnect(socket: SocketIO.Socket)
       delete listOfBusListeners[bus].ids[ socket.id ];
       if ( Object.keys(listOfBusListeners[bus].ids).length === 0 )
       {
-        removeBusFromSchedule(bus);
+        dataProvider.removeBusFromSchedule(bus);
       }
     }
   }
   delete listOfClients[socket.id];
 }
 
-function addBusListener(socket: SocketIO.Socket, busCode: string)
+function addBusListener(socket, busCode)
 {
   // register listener
   listOfClients[socket.id].buses[busCode] = true;
@@ -120,18 +120,18 @@ function addBusListener(socket: SocketIO.Socket, busCode: string)
   }
   listOfBusListeners[busCode].ids[socket.id] = true;
 
-  addBusToSchedule(busCode);
+  dataProvider.addBusToSchedule(busCode);
 
   // send current state
-  let _state: State = {};
-  _state[busCode] = getCurrentState(busCode);
+  let _state = {};
+  _state[busCode] = dataProvider.getCurrentState(busCode);
   socket.emit(
     'bus listener created',
     _state
   );
 }
 
-function removeBusListener(socket: SocketIO.Socket, code: string)
+function removeBusListener(socket, code)
 {
   try
   {
@@ -139,7 +139,7 @@ function removeBusListener(socket: SocketIO.Socket, code: string)
     delete listOfBusListeners[code].ids[socket.id];
     if ( Object.keys(listOfBusListeners[code].ids).length === 0 )
     {
-      removeBusFromSchedule(code);
+      dataProvider.removeBusFromSchedule(code);
     }
   }
   catch (err)

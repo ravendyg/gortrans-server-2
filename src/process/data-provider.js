@@ -31,10 +31,10 @@ let newState = {};
 
 let subscribers = {};
 
-// emitter.on(
-//   'data provider next run',
-//   fetchData
-// );
+emitter.on(
+  'data provider next run',
+  fetchData
+);
 
 /**
  * start with the server

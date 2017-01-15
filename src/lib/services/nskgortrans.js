@@ -4,21 +4,15 @@ const request = require('request');
 const Bluebird = require('bluebird');
 
 const models = require('../db/models');
-const db = require('../db/db');
 
 const config = require('../config');
-const errorServ = require('../error');
 
 module.exports =
 {
-  getListOfAvailableBuses
+  getListOfAvailableBuses, getTrass
 };
-// const gortrans =
-// {
-//   getListOfRoutes, getListOfRouteCodes,, getStops
-// };
 
-// export { gortrans };
+
 let state =
 {
   name: 'info',
@@ -94,7 +88,7 @@ models.Info.findOne({name: 'info'},
                   routestimestamp: timestamp
                 }
               },
-              (err, res) => {}
+              () => {}
             );
           }
 
@@ -169,7 +163,7 @@ console.log(!notChanged);
                         trassestimestamp: timestamp,
                       }
                     },
-                    (err, res) => {}
+                    () => {}
                   );
                 }
                 return Bluebird.resolve();
@@ -189,7 +183,7 @@ console.log('updated');
                 updated: now
               }
             },
-            (err, res) => {}
+            () => {}
           );
 
           let date = new Date();
@@ -246,7 +240,6 @@ function getListOfRoutesResponseHandler(resolve, reject, err, httpResponse, body
     try
     {
       let routes = JSON.parse( body );
-      let routesLastRefresh = Date.now();
 
       let routeCodes =
         routes
@@ -269,8 +262,6 @@ function getListOfRoutesResponseHandler(resolve, reject, err, httpResponse, body
         );
 
       resolve({routeStr: body, routes, routeCodes});
-
-      // refreshRoutesInDb( JSON.stringify(routes), routesLastRefresh, resolve );
     }
     catch ( err )
     {
@@ -280,39 +271,6 @@ function getListOfRoutesResponseHandler(resolve, reject, err, httpResponse, body
   }
 }
 
-// /**
-//  * get list of routes from DB
-//  * compare them
-//  * if changed replace
-//  */
-// function refreshRoutesInDb( newRoutes, timestamp, resolve )
-// {
-//   db.getRoutes(0)
-//   .then(
-//     (res) =>
-//     {
-//       if ( res.routes !== newRoutes )
-//       {
-//         try
-//         {
-//           var temp = JSON.parse(newRoutes);
-//           routesTimestamp = timestamp;
-//           resolve(true);
-//           db.putRoutes( newRoutes, timestamp );
-//         }
-//         catch (err)
-//         {
-//           resolve(false);
-//         }
-//       }
-//       else
-//       {
-//         resolve(false);
-//         routesTimestamp = res.timestamp;
-//       }
-//     }
-//   );
-// }
 
 /**
  * get list of buses out there
@@ -386,68 +344,6 @@ function getListOfAvailableBusesHandler(
 }
 
 
-// // initial load of vehicle trasses
-// Bluebird.all([
-//   getListOfRoutes(0),
-//   loadStopsFromDb()
-// ])
-// .then(
-//   () =>
-//   {
-//     // remove buses we are not interested in
-//     routeCodes = routeCodes.filter( config.FILTER_BUSES_OUT );
-
-//     routeCodes.reduce(
-//       ( acc, busCode ) =>
-//       {
-//         return acc.then(
-//           (trassNotChanged) =>
-//           {
-//             return new Bluebird(
-//               (resolve) =>
-//               { // check whether it's in the db
-//                 db.getTrass( 0, busCode )
-//                 .then(
-//                   val =>
-//                   {
-//                     let timestamp = Date.now();
-//                     if ( val.timestamp + config.TRASS_DATA_VALID_FOR > timestamp )
-//                     { // relatively fresh
-//                       resolve(trassNotChanged && true);
-//                     }
-//                     else
-//                     { // expired, reload for check
-//                       getVehicleTrass(resolve, busCode, val.trass, timestamp, trassNotChanged);
-//                     }
-//                   }
-//                 );
-//               }
-//             );
-//           }
-//         );
-//       },
-//       Bluebird.resolve(true)
-//     )
-//     .then(
-//       (trassNotChanged) =>
-//       {
-//         if ( !trassNotChanged )
-//         {
-//           db.putStopsInDb(stops, busStops, stopsTimestamp);
-//         }
-//         return Bluebird.resolve();
-//       }
-//     )
-//     .catch(
-//       (err) =>
-//       {
-//         console.error(err, 'initial load of vehicle trasses');
-//       }
-//     );
-//   }
-// );
-
-
 function getVehicleTrass(busCode)
 {
   return new Bluebird(
@@ -515,4 +411,13 @@ function extractStopsFromTrass(_points, busCode)
 function filterStops(e)
 {
   return e['id'];
+}
+
+
+function getTrass(busCode, tsp)
+{
+  return state.trassestimestamp > tsp
+    ?  state.trasses[busCode]
+    : null
+    ;
 }

@@ -1,13 +1,11 @@
 'use strict';
 
-const request = require('request');
 const events = require('events');
 const emitter = new events.EventEmitter();
 
 const Bluebird = require('bluebird');
 
 const config = require('../lib/config');
-const errorServ = require('../lib/error');
 const utils = require('../lib/utils');
 
 const gortrans = require('../lib/services/nskgortrans');

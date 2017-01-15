@@ -1,13 +1,12 @@
 'use strict';
 
 const dataProvider = require('../../process/data-provider');
+const gortrans = require('./nskgortrans');
 
 let io;
 
 let listOfClients = {};
 let listOfBusListeners = {};
-
-let socket;
 
 // log connections every 1 hour
 setTimeout(logConnection, 1000 * 60);
@@ -110,7 +109,7 @@ function disconnect(socket)
   delete listOfClients[socket.id];
 }
 
-function addBusListener(socket, busCode)
+function addBusListener(socket, busCode, tsp)
 {
   // register listener
   listOfClients[socket.id].buses[busCode] = true;
@@ -127,7 +126,9 @@ function addBusListener(socket, busCode)
   _state[busCode] = dataProvider.getCurrentState(busCode);
   socket.emit(
     'bus listener created',
-    _state
+    busCode,
+    _state,
+    gortrans.getTrass(busCode, tsp)
   );
 }
 

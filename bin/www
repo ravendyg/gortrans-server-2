@@ -28,7 +28,7 @@ mongo.connectToDb(
             {
               console.error(err.stack, 'couldn\'t create info record');
             }
-          )
+          );
         }
         else
         {

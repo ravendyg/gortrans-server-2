@@ -18,6 +18,7 @@ const dataProvider = require('../process/data-provider');
 router.route('/sync').get(
   (req, res) =>
   {
+    console.log(req.headers['x-real-ip']);
     let routestimestamp = +req.query.routestimestamp || 0;
     let trassestimestamp = +req.query.stopstimestamp || 0;
 

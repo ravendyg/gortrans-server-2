@@ -135,11 +135,11 @@ function processBusData (data)
         { // updates
           if ( !currentState[busCode][graph] )
           { // new bus
-            changes[ busCode ].add[graph] = newState[busCode][graph];
+            changes[ busCode ].add[graph] = copyBusDataReduced(newState[busCode][graph]);
           }
           else if ( newState[busCode][graph].time_nav !== currentState[busCode][graph].time_nav )
           { // smth changed
-            changes[ busCode ].update[graph] = newState[busCode][graph];
+            changes[ busCode ].update[graph] = copyBusDataReduced(newState[busCode][graph]);
           }
         }
 
@@ -153,10 +153,16 @@ function processBusData (data)
       }
       else
       { // completely new
+        var _newState = {};
+        _newState[busCode] = {};
+        for (let _code of Object.keys(newState[busCode]))
+        {
+          _newState[busCode][_code] = copyBusDataReduced(newState[busCode][_code]);
+        }
         changes[ busCode ] =
         {
           update: {},
-          add: newState[ busCode ],
+          add: _newState[ busCode ],
           remove: []
         };
       }
@@ -197,22 +203,23 @@ function scheduleNextRun()
 
 function notifyListeners(changes)
 {
-  let changesReduced = {};
-  for (let code of Object.keys(changes))
-  {
-    changesReduced[code] = {add: {}, update: {}, remove: changes[code].remove};
-    for (let graph of Object.keys(changes[code].add))
-    {
-      changesReduced[code].add[graph] = copyBusDataReduced(changes[code].add[graph]);
-    }
-    for (let graph of Object.keys(changes[code].update))
-    {
-      changesReduced[code].update[graph] = copyBusDataReduced(changes[code].update[graph]);
-    }
-  }
+  // let changesReduced = {};
+  // for (let code of Object.keys(changes))
+  // {
+  //   changesReduced[code] = {add: {}, update: {}, remove: changes[code].remove};
+  //   for (let graph of Object.keys(changes[code].add))
+  //   {
+  //     changesReduced[code].add[graph] = copyBusDataReduced(changes[code].add[graph]);
+  //   }
+  //   for (let graph of Object.keys(changes[code].update))
+  //   {
+  //     changesReduced[code].update[graph] = copyBusDataReduced(changes[code].update[graph]);
+  //   }
+  // }
   for ( let key of Object.keys(subscribers) )
   {
-    subscribers[key]( changesReduced );
+    subscribers[key](changes);
+    // subscribers[key]( changesReduced );
   }
 }
 
@@ -236,15 +243,15 @@ function getCurrentState(busCode)
 function copyBusDataReduced(data)
 {
   return {
-    azimuth: data.azimuth,
     title: data.title,
-    id_typetr: data.id_typetr,
+    id_typetr: +data.id_typetr,
     marsh: data.marsh,
+    graph: +data.graph,
     direction: data.direction,
-    graph: data.graph,
-    lat: data.lat,
-    lng: data.lng,
+    lat: +data.lat,
+    lng: +data.lng,
     time_nav: data.time_nav,
-    speed: data.speed
+    azimuth: +data.azimuth,
+    speed: +data.speed
   };
 }

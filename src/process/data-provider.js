@@ -112,7 +112,8 @@ function processBusData (data)
 
   if ( data.length > 0 )
   { // send data to socket delivery service
-    newState =
+    newState = {};
+    var _newState =
       data
       .filter( utils.hasKeys )
       .reduce( utils.flatArrayToDict, {} );
@@ -120,8 +121,14 @@ function processBusData (data)
     // for each key in new state compare array corresponding to this key to the array in state
     // using time_nav as reference
 
-    for ( let busCode of Object.keys( newState ) )
+    for ( let busCode of Object.keys(_newState) )
     {
+      newState[busCode] = {};
+      for (let graph of Object.keys(_newState[busCode]))
+      {
+        newState[busCode][graph] = copyBusDataReduced(_newState[busCode][graph]);
+      }
+
       if ( currentState[ busCode ] )
       {
         changes[ busCode ] =
@@ -135,11 +142,11 @@ function processBusData (data)
         { // updates
           if ( !currentState[busCode][graph] )
           { // new bus
-            changes[ busCode ].add[graph] = copyBusDataReduced(newState[busCode][graph]);
+            changes[ busCode ].add[graph] = newState[busCode][graph];
           }
           else if ( newState[busCode][graph].time_nav !== currentState[busCode][graph].time_nav )
           { // smth changed
-            changes[ busCode ].update[graph] = copyBusDataReduced(newState[busCode][graph]);
+            changes[ busCode ].update[graph] = newState[busCode][graph];
           }
         }
 
@@ -153,16 +160,10 @@ function processBusData (data)
       }
       else
       { // completely new
-        var _newState = {};
-        _newState[busCode] = {};
-        for (let _code of Object.keys(newState[busCode]))
-        {
-          _newState[busCode][_code] = copyBusDataReduced(newState[busCode][_code]);
-        }
         changes[ busCode ] =
         {
           update: {},
-          add: _newState[ busCode ],
+          add: newState[ busCode ],
           remove: []
         };
       }

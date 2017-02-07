@@ -19,13 +19,14 @@ module.exports =
   getCurrentState
 };
 
-let schedule = {};
+let schedule = new Set([]);
 
 let rescheduleId = {};
 rescheduleId['_called'] = true;
 
 let currentState = {};
 let newState = {};
+let clearStateTimer = { '0': null };
 
 let subscribers = {};
 
@@ -49,18 +50,32 @@ function startProcess()
  */
 function addBusToSchedule( busCode )
 {
-  if ( !schedule[busCode] )
+  if (!schedule.has(busCode))
   {
-    schedule[busCode] = true;
+    if (clearStateTimer['0'] !== null)
+    {
+      clearTimeout(clearStateTimer);
+    }
+    schedule.add(busCode);
     fetchData();
   }
 }
 
 function removeBusFromSchedule( busCode )
 {
-  if ( schedule[busCode] )
+  if (schedule.has(busCode))
   {
-    delete schedule[busCode];
+    schedule.delete(busCode);
+    if (schedule.size === 0)
+    {
+      clearStateTimer = setTimeout(
+        () =>
+        {
+          currentState = {};
+        },
+        config.RESET_STATE_AFTER
+      );
+    }
   }
 }
 
@@ -72,9 +87,12 @@ function fetchData()
   let calls = [ Bluebird.resolve({}) ];  // in case no calls required
 
   let keyList = [];
-  for ( let busCode of Object.keys(schedule) )
+  // for ( let busCode of Object.keys(schedule) )
+  let value, done;
+  let busCodes = schedule.keys();
+  while ({value, done} = busCodes.next(), !done)
   {
-    keyList.push( busCode );
+    keyList.push(value);
 
     if ( keyList.length === 5 )
     {
@@ -256,3 +274,4 @@ function copyBusDataReduced(data)
     speed: +data.speed
   };
 }
+

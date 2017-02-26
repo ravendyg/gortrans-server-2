@@ -110,13 +110,17 @@ if (count % 10 === 0) console.log(count);
                         .then(
                           trass =>
                           {
-                            if (trass && trass !== info.trasses[''+busCode])
+                            if (trass && trass !== info.trassesStr[''+busCode])
                             { // response string changed
                               try
                               {
                                 let temp = JSON.parse(trass);
                                 info.trassesStr[''+busCode] = trass; // remember str
-                                state.trasses[''+busCode] = temp.trasses[0].r[0].u; // object for clients
+                                state.trasses[''+busCode] = temp.trasses[0].r[0].u
+                                  .map(e => Object.assign({}, e, {
+                                    lat: (+e.lat) + 0.00014,
+                                    lng: (+e.lng) - 0.00009
+                                  })); // object for clients
                                 extractStopsFromTrass(state.trasses[''+busCode], busCode);  // put stops into state
                                 resolve(false);
                               }

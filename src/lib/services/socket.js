@@ -68,7 +68,6 @@ function start(server)
         buses: {}
       };
 
-
       socket._info.connectionDoc = logger.createRecord({
         apiKey: socket._info.apiKey, action: 'connect',
         ip: socket._info.ip, target: '',
@@ -134,7 +133,15 @@ function disconnect(socket)
   delete listOfClients[socket.id];
 
   socket._info.connectionDoc
-  .then(logger.recordEnd);
+  .then(_id =>
+  {
+    logger.recordEnd(_id);
+    for (let code of Object.keys(socket._info.requests))
+    {
+      socket._info.requests[code]
+      .then(logger.recordEnd);
+    }
+  });
 }
 
 function addBusListener(socket, busCode, tsp)
@@ -170,7 +177,11 @@ function addBusListener(socket, busCode, tsp)
 function removeBusListener(socket, code)
 {
   socket._info.requests[code]
-  .then(logger.recordEnd);
+  .then(_id =>
+  {
+    logger.recordEnd(_id);
+    delete socket._info.requests[code];
+  });
 
   try
   {

@@ -1,9 +1,8 @@
 'use strict';
 
 const express = require('express');
-const router = express.Router();
+const router = new express.Router();
 const request = require('request');
-const Bluebird = require('bluebird');
 
 
 const config = require('../lib/config');
@@ -44,52 +43,6 @@ router.route('/sync').get(
   }
 );
 
-// /**
-//  * get list of routes
-//  */
-// router.route('/list-of-routes').get(
-//   (req, res) =>
-//   {
-//     gortrans.getListOfRoutes( req.query.timestamp || 0 )
-//     .then(
-//       data =>
-//       {
-//         res.json({data});
-//       }
-//     )
-//     .catch(
-//       err =>
-//       {
-//         console.error(err, 'GET /list-of-routes' );
-//         res.json({data: {routes: [], timestamp: +req.query.timestamp || 0}});
-//       }
-//     );
-//   }
-// );
-
-// /**
-//  * get list of route codes
-//  */
-// router.route('/list-of-route-codes').get(
-//   (req, res) =>
-//   {
-//     gortrans.getListOfRouteCodes( req.query.timestamp || 0 )
-//     .then(
-//       data =>
-//       {
-//         res.json({data});
-//       }
-//     )
-//     .catch(
-//       err =>
-//       {
-//         console.error(err, 'GET /list-of-route-codes' );
-//         res.json({data: {routeCodes: [], timestamp: +req.query.timestamp || 0}});
-//       }
-//     );
-//   }
-// );
-
 /** stop forecast
  * just pass through
  */
@@ -100,7 +53,7 @@ router.route('/stop-schedule').get(
       {
         url: config.PROXY_URL,
         method: 'GET',
-        qs: { url: encodeURI( `${config.NSK_FORECAST}id=${req.query.stopId}&type=platform` ) }
+        qs: { url: encodeURI(`${config.NSK_FORECAST}id=${req.query.stopId}&type=platform`)}
       }
     )
     .pipe(res);
@@ -132,7 +85,7 @@ router.route('/bus-rasp').get(
 
 /* GET home page. */
 router.route('/').get(
-  function( req, res, next)
+  function render(req, res)
   {
     res.render('index', {});
   }

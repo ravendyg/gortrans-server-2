@@ -54,7 +54,7 @@ models.Info.findOne({name: 'info'},
     else
     {
       let nextDate = new Date(date.getTime() + 1000 * 60 * 60 * 24);
-      let next = Date.parse(nextDate.getFullYear() + '-' + (nextDate.getMonth()+1) + '-' + nextDate.getDate());
+      let next = Date.parse(nextDate.getFullYear() + '-' + (nextDate.getMonth() + 1) + '-' + nextDate.getDate());
       setTimeout(
         syncWithRu,
         next - date.getTime()
@@ -64,7 +64,7 @@ models.Info.findOne({name: 'info'},
 
     function syncWithRu()
     {
-      new Bluebird( fetchListOfRoutes )
+      new Bluebird(fetchListOfRoutes)
       .then(
         ({routeStr, routes, routeCodes}) =>
         {

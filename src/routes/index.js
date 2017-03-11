@@ -4,12 +4,12 @@ const express = require('express');
 const router = new express.Router();
 const request = require('request');
 
-
 const config = require('../lib/config');
 
 const gortrans = require('../lib/services/nskgortrans');
 const dataProvider = require('../process/data-provider');
 
+const logger = require('../lib/db/log');
 
 /**
  * sync list of routes, bus lines, and bus stops
@@ -17,7 +17,16 @@ const dataProvider = require('../process/data-provider');
 router.route('/sync').get(
   (req, res) =>
   {
-    console.log(req.headers['x-real-ip']);
+    let ip = req.headers['x-real-ip'];
+    let apiKey = req.query.api_key;
+    let agent = req.headers['user-agent'];
+    console.log(ip);
+    if (!apiKey)
+    {
+      res.status(404).send();
+      return;
+    }
+
     let routestimestamp = +req.query.routestimestamp || 0;
     let trassestimestamp = +req.query.stopstimestamp || 0;
 
@@ -40,6 +49,9 @@ router.route('/sync').get(
     };
 
     res.json(out);
+    logger.createRecord({
+      apiKey, action: 'sync', ip, target: '', agent
+    });
   }
 );
 

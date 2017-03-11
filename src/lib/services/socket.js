@@ -3,6 +3,8 @@
 const dataProvider = require('../../process/data-provider');
 const gortrans = require('./nskgortrans');
 
+const logger = require('../db/log');
+
 let io;
 
 let listOfClients = {};
@@ -24,16 +26,32 @@ function start(server)
   io = require('socket.io')(server);
 
   // filter some crap
+  // don't temporarily because of android
   io.use(
     (socket, next) =>
     {
-      if (!socket.handshake.headers.host.match('.nskgortrans.info') &&
-          !socket.handshake.headers.host.match('192.168'))
-      { // temporarily block everything from other domains
+      // if (!socket.handshake.headers.host.match('.nskgortrans.info') &&
+      //     !socket.handshake.headers.host.match('192.168'))
+      // { // temporarily block everything from other domains
+      //   next(new Error(''));
+      // }
+      // else
+      // {
+      //   next();
+      // }
+      let apiKey = +socket.handshake.query.apiKey;
+      let ip = socket.handshake.headers['x-real-ip'];
+      let agent = socket.handshake.headers['user-agent'];
+      if (!apiKey)
+      {
         next(new Error(''));
       }
       else
       {
+        socket._info = {
+          apiKey, ip, agent,
+          requests: {}
+        };
         next();
       }
     }
@@ -49,6 +67,13 @@ function start(server)
         connected: Date.now(),
         buses: {}
       };
+
+
+      socket._info.connectionDoc = logger.createRecord({
+        apiKey: socket._info.apiKey, action: 'connect',
+        ip: socket._info.ip, target: '',
+        agent: socket._info.agent
+      });
 
       socket.on('disconnect', disconnect.bind(this, socket));
 
@@ -107,10 +132,20 @@ function disconnect(socket)
     }
   }
   delete listOfClients[socket.id];
+
+  socket._info.connectionDoc
+  .then(logger.recordEnd);
 }
 
 function addBusListener(socket, busCode, tsp)
 {
+  socket._info.requests[busCode] =
+    logger.createRecord({
+      apiKey: socket._info.apiKey, action: 'listen',
+      ip: socket._info.ip, target: busCode,
+      agent: socket._info.agent
+    });
+
   // register listener
   listOfClients[socket.id].buses[busCode] = true;
   if (!listOfBusListeners[busCode])
@@ -134,6 +169,9 @@ function addBusListener(socket, busCode, tsp)
 
 function removeBusListener(socket, code)
 {
+  socket._info.requests[code]
+  .then(logger.recordEnd);
+
   try
   {
     delete listOfClients[socket.id].buses[code];

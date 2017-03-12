@@ -30,9 +30,9 @@ function start(server)
   io.use(
     (socket, next) =>
     {
-      let apiKey = +socket.handshake.query.apiKey;
+      let apiKey = +socket.handshake.query.apiKey || -100;
       let ip = socket.handshake.headers['x-real-ip'];
-      let agent = socket.handshake.headers['user-agent'] || -100;
+      let agent = socket.handshake.headers['user-agent'];
       if (!apiKey)
       {
         next(new Error(''));

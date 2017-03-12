@@ -30,18 +30,9 @@ function start(server)
   io.use(
     (socket, next) =>
     {
-      // if (!socket.handshake.headers.host.match('.nskgortrans.info') &&
-      //     !socket.handshake.headers.host.match('192.168'))
-      // { // temporarily block everything from other domains
-      //   next(new Error(''));
-      // }
-      // else
-      // {
-      //   next();
-      // }
       let apiKey = +socket.handshake.query.apiKey;
       let ip = socket.handshake.headers['x-real-ip'];
-      let agent = socket.handshake.headers['user-agent'];
+      let agent = socket.handshake.headers['user-agent'] || -100;
       if (!apiKey)
       {
         next(new Error(''));

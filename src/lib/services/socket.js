@@ -28,7 +28,7 @@ function start(server)
   io.use(
     (socket, next) =>
     {
-      let apiKey = +socket.handshake.query.apiKey;
+      let apiKey = +socket.handshake.query.api_key;
       let ip = socket.handshake.headers['x-real-ip'];
       let agent = socket.handshake.headers['user-agent'];
       if (!apiKey)

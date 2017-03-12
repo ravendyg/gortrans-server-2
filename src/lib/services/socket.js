@@ -25,12 +25,10 @@ function start(server)
 {
   io = require('socket.io')(server);
 
-  // filter some crap
-  // don't temporarily because of android
   io.use(
     (socket, next) =>
     {
-      let apiKey = +socket.handshake.query.apiKey || -100;
+      let apiKey = +socket.handshake.query.apiKey;
       let ip = socket.handshake.headers['x-real-ip'];
       let agent = socket.handshake.headers['user-agent'];
       if (!apiKey)

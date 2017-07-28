@@ -94,9 +94,9 @@ models.Info.findOne({name: 'info'},
 
 let count = 0;
           return routeCodes
-            .filter( config.FILTER_BUSES_OUT )  // remove buses we are not interested in
+            .filter(config.FILTER_BUSES_OUT)  // remove buses we are not interested in
             .reduce(
-              ( acc, busCode ) =>
+              (acc, busCode) =>
               {
                 return acc.then(
                   (trassNotChanged) =>
@@ -110,18 +110,18 @@ if (count % 10 === 0) console.log(count);
                         .then(
                           trass =>
                           {
-                            if (trass && trass !== info.trassesStr[''+busCode])
+                            if (trass && trass !== info.trassesStr['' + busCode])
                             { // response string changed
                               try
                               {
                                 let temp = JSON.parse(trass);
-                                info.trassesStr[''+busCode] = trass; // remember str
-                                state.trasses[''+busCode] = temp.trasses[0].r[0].u
+                                info.trassesStr['' + busCode] = trass; // remember str
+                                state.trasses['' + busCode] = temp.trasses[0].r[0].u
                                   .map(e => Object.assign({}, e, {
-                                    lat: (+e.lat) + 0.00014,
-                                    lng: (+e.lng) - 0.00009
+                                    lat: +e.lat + 0.00014,
+                                    lng: +e.lng - 0.00009
                                   })); // object for clients
-                                extractStopsFromTrass(state.trasses[''+busCode], busCode);  // put stops into state
+                                extractStopsFromTrass(state.trasses['' + busCode], busCode);  // put stops into state
                                 resolve(false);
                               }
                               catch (err)
@@ -190,19 +190,19 @@ console.log('updated');
             () => {}
           );
 
-          let date = new Date();
+          let _date = new Date();
           let nextDate = new Date(date.getTime() + 1000 * 60 * 60 * 24);
-          let next = Date.parse(nextDate.getFullYear() + '-' + (nextDate.getMonth()+1) + '-' + nextDate.getDate());
+          let next = Date.parse(nextDate.getFullYear() + '-' + (nextDate.getMonth() + 1) + '-' + nextDate.getDate());
           setTimeout(
             syncWithRu,
-            next - date.getTime()
+            next - _date.getTime()
           );
         }
       )
       .catch(
-        err =>
+        _err =>
         {
-          console.error(err.stack);
+          console.error(_err.stack);
         }
       );
     }
@@ -221,56 +221,58 @@ function fetchListOfRoutes(resolve, reject)
     {
       url: config.PROXY_URL,
       method: 'GET',
-      qs: { url: encodeURI( config.NSK_ROUTES ) }
+      qs: { url: encodeURI(config.NSK_ROUTES) }
     },
-    getListOfRoutesResponseHandler.bind( this, resolve, reject )
+    getListOfRoutesResponseHandler.bind(this, resolve, reject)
   );
 }
 
 function getListOfRoutesResponseHandler(resolve, reject, err, httpResponse, body)
 {
-  if ( err )
+  if (err)
   {
-    console.error('getListOfRoutes request' );
+    console.error('getListOfRoutes request');
     reject(err);
   }
-  else if ( httpResponse.statusCode !== 200 )
+  else if (httpResponse.statusCode !== 200)
   {
-    console.error( httpResponse.statusCode, 'not 200 response', 'getListOfRoutes request' );
+    console.error(httpResponse.statusCode, 'not 200 response', 'getListOfRoutes request');
     reject();
   }
   else
   {
     try
     {
-      let routes = JSON.parse( body );
+      let routes = JSON.parse(body);
 
       let routeCodes =
         routes
         .reduce(
-          ( acc, route ) => {
+          (acc, route) =>
+          {
             var codes =
               route.ways.reduce(
-                ( acc2, way ) => {
+                (acc2, way) =>
+                {
                   var out =
                     acc2.concat(
-                      ((+route.type) + 1) + '-' + way.marsh + '-W-' + way.name
+                      +route.type + 1 + '-' + way.marsh + '-W-' + way.name
                     );
                   return out;
                 },
                 []
               );
-            return acc.concat( codes );
+            return acc.concat(codes);
           },
           []
         );
 
       resolve({routeStr: body, routes, routeCodes});
     }
-    catch ( err )
+    catch (_err)
     {
       console.error('getListOfRoutes parsing response');
-      reject(err);
+      reject(_err);
     }
   }
 }
@@ -280,20 +282,20 @@ function getListOfRoutesResponseHandler(resolve, reject, err, httpResponse, body
  * get list of buses out there
  * @codes // concatenated codes
  */
-function getListOfAvailableBuses( codes )
+function getListOfAvailableBuses(codes)
 {
-  return new Bluebird( fetchListOfAvailableBuses.bind( this, codes ) );
+  return new Bluebird(fetchListOfAvailableBuses.bind(this, codes));
 }
 
-function fetchListOfAvailableBuses( codes, resolve, reject)
+function fetchListOfAvailableBuses(codes, resolve, reject)
 {
   request(
     {
       url: config.PROXY_URL,
       method: 'GET',
-      qs: { url: encodeURI( config.NSK_BUSES + codes ) }
+      qs: { url: encodeURI(config.NSK_BUSES + codes) }
     },
-    getListOfAvailableBusesHandler.bind( this, resolve, reject, codes )
+    getListOfAvailableBusesHandler.bind(this, resolve, reject, codes)
   );
 }
 
@@ -301,26 +303,26 @@ function getListOfAvailableBusesHandler(
   resolve, reject, codesQuery,
   err, httpResponse, body)
 {
-  if ( err )
+  if (err)
   {
-    console.error( err, 'getListOfAvailableBuses request' );
+    console.error(err, 'getListOfAvailableBuses request');
     resolve({});
   }
-  else if ( httpResponse.statusCode !== 200 )
+  else if (httpResponse.statusCode !== 200)
   {
-    console.error( httpResponse.statusCode, 'not 200 response', 'getListOfAvailableBuses request' );
+    console.error(httpResponse.statusCode, 'not 200 response', 'getListOfAvailableBuses request');
     resolve({});
   }
   else
   {
     try
     {
-      let data = JSON.parse( body ).markers;
+      let data = JSON.parse(body).markers;
 
       var out =
         data
         .reduce(
-          ( acc, e ) =>
+          (acc, e) =>
           {
             let code = e.id_typetr + '-' + e.marsh + '-W-' + e.title;
             acc[code] = acc[code] ? acc[code].concat(e) : [e];
@@ -330,19 +332,19 @@ function getListOfAvailableBusesHandler(
         );
 
       let codes = codesQuery.split('|');
-      for ( let code of codes )
+      for (let code of codes)
       { // in case there were no markers for this bus
-        if ( !out[code] )
+        if (!out[code])
         {
           out[code] = [];
         }
       }
 
-      resolve( out );
+      resolve(out);
     }
-    catch ( e )
+    catch (e)
     {
-      reject( errServ.pass( e, 'getListOfRoutes parsing response' ) );
+      reject(e);
     }
   }
 }
@@ -357,7 +359,7 @@ function getVehicleTrass(busCode)
         {
           url: config.PROXY_URL,
           method: 'GET',
-          qs: { url: encodeURI( config.NSK_TRASSES + busCode ) }
+          qs: { url: encodeURI(config.NSK_TRASSES + busCode) }
         },
         getVehicleTrassResponseHandler.bind(this, resolve)
       );
@@ -367,14 +369,14 @@ function getVehicleTrass(busCode)
 
 function getVehicleTrassResponseHandler(resolve, err, httpResponse, body)
 {
-  if ( err )
+  if (err)
   {
-    console.error( err.stack, 'getVehicleTrass request' );
+    console.error(err.stack, 'getVehicleTrass request');
     resolve();
   }
-  else if ( httpResponse.statusCode !== 200 )
+  else if (httpResponse.statusCode !== 200)
   {
-    console.error( httpResponse.statusCode, 'not 200 response', 'getVehicleTrass request' );
+    console.error(httpResponse.statusCode, 'not 200 response', 'getVehicleTrass request');
     resolve();
   }
   else
@@ -389,9 +391,9 @@ function getVehicleTrassResponseHandler(resolve, err, httpResponse, body)
 function extractStopsFromTrass(_points, busCode)
 {
   let points = _points.filter(filterStops);
-  for ( let point of points )
+  for (let point of points)
   {
-    if ( !state.stops[point.id] )
+    if (!state.stops[point.id])
     {
       state.stops[point.id] =
       {
@@ -404,7 +406,7 @@ function extractStopsFromTrass(_points, busCode)
     }
     state.stops[point.id].vehicles[busCode] = true;
 
-    if ( !state.busStops[busCode] )
+    if (!state.busStops[busCode])
     {
       state.busStops[busCode] = {};
     }

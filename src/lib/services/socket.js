@@ -19,9 +19,9 @@ function logConnection()
   for (let clientId of Object.keys(listOfClients))
   {
     console.log(
-      listOfClients[clientId].handshake.headers['x-real-ip'],
-      listOfClients[clientId].handshake.query.api_key,
-      listOfClients[clientId].handshake.headers['user-agent']
+      listOfClients[clientId].socket.handshake.headers['x-real-ip'],
+      listOfClients[clientId].socket.handshake.query.api_key,
+      listOfClients[clientId].socket.handshake.headers['user-agent']
     );
   }
 }

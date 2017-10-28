@@ -7,24 +7,17 @@ const logger = require('../db/log');
 
 let io;
 
-let listOfClients = {};
-let listOfBusListeners = {};
+const listOfClients = {};
+const listOfBusListeners = {};
+let history = {};
 
 // log connections every 1 hour
 setTimeout(logConnection, 1000 * 60);
 setInterval(logConnection, 1000 * 60 * 30);
 function logConnection()
 {
-  console.log((new Date()).toLocaleTimeString());
-  for (let clientId of Object.keys(listOfClients))
-  {
-    console.log(
-      listOfClients[clientId].socket.handshake.headers['x-real-ip'],
-      listOfClients[clientId].socket.handshake.query.api_key,
-      listOfClients[clientId].socket.handshake.headers['user-agent'],
-      listOfClients[clientId].history
-    );
-  }
+  console.log((new Date()).toLocaleTimeString(), history);
+  history = {};
 }
 
 const suspiciousIps = [
@@ -65,14 +58,19 @@ function start(server)
         socket,
         connected: Date.now(),
         buses: {},
-        history: {}
       };
 
+      const apiKey = socket._info.apiKey;
       socket._info.connectionDoc = logger.createRecord({
-        apiKey: socket._info.apiKey, action: 'connect',
+        apiKey, action: 'connect',
         ip: socket._info.ip, target: '',
         agent: socket._info.agent
       });
+
+      if (!history[apiKey])
+      {
+        history[apiKey] = [socket.handshake.headers['x-real-ip'], socket.handshake.headers['user-agent'], {};
+      }
 
       socket.on('disconnect', disconnect.bind(this, socket));
 
@@ -146,16 +144,22 @@ function disconnect(socket)
 
 function addBusListener(socket, busCode, tsp)
 {
+  const apiKey = socket._info.apiKey;
+
   socket._info.requests[busCode] =
     logger.createRecord({
-      apiKey: socket._info.apiKey, action: 'listen',
+      apiKey, action: 'listen',
       ip: socket._info.ip, target: busCode,
       agent: socket._info.agent
     });
 
   // register listener
   listOfClients[socket.id].buses[busCode] = true;
-  listOfClients[socket.id].history[busCode] = true;
+  if (!history[apiKey])
+  {
+    history[apiKey][2][busCode] = true;
+  }
+
   if (!listOfBusListeners[busCode])
   {
     listOfBusListeners[busCode] = { ids: {} };

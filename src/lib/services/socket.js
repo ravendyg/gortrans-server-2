@@ -21,7 +21,8 @@ function logConnection()
     console.log(
       listOfClients[clientId].socket.handshake.headers['x-real-ip'],
       listOfClients[clientId].socket.handshake.query.api_key,
-      listOfClients[clientId].socket.handshake.headers['user-agent']
+      listOfClients[clientId].socket.handshake.headers['user-agent'],
+      listOfClients[clientId].buses
     );
   }
 }

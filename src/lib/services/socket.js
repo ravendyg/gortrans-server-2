@@ -69,7 +69,7 @@ function start(server)
 
       if (!history[apiKey])
       {
-        history[apiKey] = [socket.handshake.headers['x-real-ip'], socket.handshake.headers['user-agent'], {};
+        history[apiKey] = [socket.handshake.headers['x-real-ip'], socket.handshake.headers['user-agent'], {}];
       }
 
       socket.on('disconnect', disconnect.bind(this, socket));

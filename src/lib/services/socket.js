@@ -15,11 +15,20 @@ setTimeout(logConnection, 1000 * 60);
 setInterval(logConnection, 1000 * 60 * 60);
 function logConnection()
 {
+  console.log((new Date()).toLocaleTimeString());
   for (let clientId of Object.keys(listOfClients))
   {
-    console.log(clientId + ': ' + listOfClients[clientId].connected, listOfClients[clientId].buses);
+    console.log(
+      listOfClients[clientId].handshake.headers['x-real-ip'],
+      listOfClients[clientId].handshake.query.api_key,
+      listOfClients[clientId].handshake.headers['user-agent']
+    );
   }
 }
+
+const suspiciousIps = [
+  '85.26.225.238'
+];
 
 function start(server)
 {
@@ -31,7 +40,7 @@ function start(server)
       let apiKey = +socket.handshake.query.api_key || -1;
       let ip = socket.handshake.headers['x-real-ip'];
       let agent = socket.handshake.headers['user-agent'];
-      if (!apiKey)
+      if (!apiKey || suspiciousIps.indexOf(ip) !== -1)
       {
         next(new Error(''));
       }

@@ -53,12 +53,12 @@ models.Info.findOne({name: 'info'},
     }
     else
     {
-      let nextDate = new Date(date.getTime() + 1000 * 60 * 60 * 24);
+    /*  let nextDate = new Date(date.getTime() + 1000 * 60 * 60 * 24);
       let next = Date.parse(nextDate.getFullYear() + '-' + (nextDate.getMonth() + 1) + '-' + nextDate.getDate());
       setTimeout(
         syncWithRu,
         next - date.getTime()
-      );
+      );*/
     }
 
 

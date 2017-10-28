@@ -12,7 +12,7 @@ let listOfBusListeners = {};
 
 // log connections every 1 hour
 setTimeout(logConnection, 1000 * 60);
-setInterval(logConnection, 1000 * 60 * 60);
+setInterval(logConnection, 1000 * 60 * 30);
 function logConnection()
 {
   console.log((new Date()).toLocaleTimeString());
@@ -22,7 +22,7 @@ function logConnection()
       listOfClients[clientId].socket.handshake.headers['x-real-ip'],
       listOfClients[clientId].socket.handshake.query.api_key,
       listOfClients[clientId].socket.handshake.headers['user-agent'],
-      listOfClients[clientId].buses
+      listOfClients[clientId].history
     );
   }
 }
@@ -64,7 +64,8 @@ function start(server)
       {
         socket,
         connected: Date.now(),
-        buses: {}
+        buses: {},
+        history: {}
       };
 
       socket._info.connectionDoc = logger.createRecord({
@@ -154,6 +155,7 @@ function addBusListener(socket, busCode, tsp)
 
   // register listener
   listOfClients[socket.id].buses[busCode] = true;
+  listOfClients[socket.id].history[busCode] = true;
   if (!listOfBusListeners[busCode])
   {
     listOfBusListeners[busCode] = { ids: {} };

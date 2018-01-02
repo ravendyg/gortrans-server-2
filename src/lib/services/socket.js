@@ -155,7 +155,7 @@ function addBusListener(socket, busCode, tsp)
 
   // register listener
   listOfClients[socket.id].buses[busCode] = true;
-  if (!history[apiKey])
+  if (history[apiKey])
   {
     history[apiKey][2][busCode] = true;
   }

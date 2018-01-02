@@ -3,10 +3,12 @@
     "node": true,
     "browser": true,
     "builtin": true,
-    "es6": true
+    "es6": true,
+    "mocha": true
   },
   "globals": {},
   "rules": {
+    "prefer-spread": 2,
     "block-scoped-var": 2,
     "brace-style": [2, "allman", {"allowSingleLine": true }],
     "camelcase": 2,
@@ -81,6 +83,9 @@
     ]
   },
   "parserOptions": {
-    "sourceType": "module"
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "experimentalObjectRestSpread": true
+    }
   }
 }

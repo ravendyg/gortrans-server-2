@@ -22,7 +22,7 @@ module.exports =
 let schedule = new Set([]);
 
 let rescheduleId = {};
-rescheduleId['_called'] = true;
+rescheduleId._called = true;
 
 let currentState = {};
 let newState = {};
@@ -48,7 +48,7 @@ function startProcess()
  * put this bus on the next scheduled fetch
  * call if smbd requested it's data
  */
-function addBusToSchedule( busCode )
+function addBusToSchedule(busCode)
 {
   if (!schedule.has(busCode))
   {
@@ -61,7 +61,7 @@ function addBusToSchedule( busCode )
   }
 }
 
-function removeBusFromSchedule( busCode )
+function removeBusFromSchedule(busCode)
 {
   if (schedule.has(busCode))
   {
@@ -74,7 +74,7 @@ function removeBusFromSchedule( busCode )
           currentState = {};
         },
         config.RESET_STATE_AFTER
-      );
+     );
     }
   }
 }
@@ -87,59 +87,59 @@ function fetchData()
   let calls = [ Bluebird.resolve({}) ];  // in case no calls required
 
   let keyList = [];
-  // for ( let busCode of Object.keys(schedule) )
+  // for (let busCode of Object.keys(schedule))
   let value, done;
   let busCodes = schedule.keys();
   while ({value, done} = busCodes.next(), !done)
   {
     keyList.push(value);
 
-    if ( keyList.length === 5 )
+    if (keyList.length === 5)
     {
       calls.push(
-        gortrans.getListOfAvailableBuses( keyList.join('|') )
-      );
+        gortrans.getListOfAvailableBuses(keyList.join('|'))
+     );
       keyList = [];
     }
   }
 
-  if ( keyList.length > 0 )
+  if (keyList.length > 0)
   { // last group smaller than 5
     calls.push(
-      gortrans.getListOfAvailableBuses( keyList.join('|') )
-    );
+      gortrans.getListOfAvailableBuses(keyList.join('|'))
+   );
   }
 
-  return Bluebird.all( calls )
-  .then( processBusData )
-  .then( notifyListeners )
+  return Bluebird.all(calls)
+  .then(processBusData)
+  .then(notifyListeners)
   .catch(
     (err) =>
     {
-      console.error( err, 'fetch data');
+      console.error(err, 'fetch data');
       scheduleNextRun();
     }
-  );
+ );
 }
 
-function processBusData (data)
+function processBusData(data)
 {
   data = data.slice(1); // remove initial Bluebird.resolve
 
   let changes = {};
 
-  if ( data.length > 0 )
+  if (data.length > 0)
   { // send data to socket delivery service
     newState = {};
     var _newState =
       data
-      .filter( utils.hasKeys )
-      .reduce( utils.flatArrayToDict, {} );
+      .filter(utils.hasKeys)
+      .reduce(utils.flatArrayToDict, {});
 
     // for each key in new state compare array corresponding to this key to the array in state
     // using time_nav as reference
 
-    for ( let busCode of Object.keys(_newState) )
+    for (let busCode of Object.keys(_newState))
     {
       newState[busCode] = {};
       for (let graph of Object.keys(_newState[busCode]))
@@ -147,7 +147,7 @@ function processBusData (data)
         newState[busCode][graph] = copyBusDataReduced(_newState[busCode][graph]);
       }
 
-      if ( currentState[ busCode ] )
+      if (currentState[ busCode ])
       {
         changes[ busCode ] =
         {
@@ -156,23 +156,23 @@ function processBusData (data)
           remove: []
         };
 
-        for ( let graph of Object.keys( newState[ busCode ] ) )
+        for (let graph of Object.keys(newState[ busCode ]))
         { // updates
-          if ( !currentState[busCode][graph] )
+          if (!currentState[busCode][graph])
           { // new bus
             changes[ busCode ].add[graph] = newState[busCode][graph];
           }
-          else if ( newState[busCode][graph].time_nav !== currentState[busCode][graph].time_nav )
+          else if (newState[busCode][graph].time_nav !== currentState[busCode][graph].time_nav)
           { // smth changed
             changes[ busCode ].update[graph] = newState[busCode][graph];
           }
         }
 
-        for ( let graph of Object.keys( currentState[ busCode ] ) )
+        for (let graph of Object.keys(currentState[ busCode ]))
         { // remove
-          if ( !newState[busCode][graph] )
+          if (!newState[busCode][graph])
           { // removed
-            changes[ busCode ].remove.push( graph );
+            changes[ busCode ].remove.push(graph);
           }
         }
       }
@@ -187,7 +187,10 @@ function processBusData (data)
       }
     }
     // done comparing, get rid of old state
-    Object['assign']( currentState, newState);
+    currentState = {
+      ...currentState,
+      ...newState,
+    };
   }
   scheduleNextRun();
 
@@ -201,7 +204,7 @@ function scheduleNextRun()
 {
   let now = Date.now();
   let untilNextTime =
-    Math.ceil( now / config.DATA_RETRIEVAL_PERIOD ) * config.DATA_RETRIEVAL_PERIOD - now;
+    Math.ceil(now / config.DATA_RETRIEVAL_PERIOD) * config.DATA_RETRIEVAL_PERIOD - now;
   if (rescheduleId._called)
   {
     rescheduleId =
@@ -211,7 +214,7 @@ function scheduleNextRun()
           emitter.emit('data provider next run');
         },
         untilNextTime
-      );
+     );
   }
   else
   {
@@ -235,14 +238,14 @@ function notifyListeners(changes)
   //     changesReduced[code].update[graph] = copyBusDataReduced(changes[code].update[graph]);
   //   }
   // }
-  for ( let key of Object.keys(subscribers) )
+  for (let key of Object.keys(subscribers))
   {
     subscribers[key](changes);
-    // subscribers[key]( changesReduced );
+    // subscribers[key](changesReduced);
   }
 }
 
-function subscribe( cb )
+function subscribe(cb)
 {
   let key = Date.now().toString() + Math.random();
   subscribers[ key ] = cb;
@@ -263,13 +266,13 @@ function copyBusDataReduced(data)
 {
   return {
     title: data.title,
-    id_typetr: +data.id_typetr,
+    'id_typetr': +data.id_typetr,
     marsh: data.marsh,
     graph: +data.graph,
     direction: data.direction,
     lat: +data.lat,
     lng: +data.lng,
-    time_nav: data.time_nav,
+    'time_nav': data.time_nav,
     azimuth: +data.azimuth,
     speed: +data.speed
   };

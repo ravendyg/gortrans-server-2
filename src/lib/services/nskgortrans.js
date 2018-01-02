@@ -104,8 +104,11 @@ let count = 0;
                     return new Bluebird(
                       resolve =>
                       {
-count++;
-if (count % 10 === 0) console.log(count);
+                        count++;
+                        if (count % 10 === 0)
+                        {
+                          console.log(count);
+                        }
                         getVehicleTrass(busCode)
                         .then(
                           trass =>
@@ -124,9 +127,9 @@ if (count % 10 === 0) console.log(count);
                                 extractStopsFromTrass(state.trasses['' + busCode], busCode);  // put stops into state
                                 resolve(false);
                               }
-                              catch (err)
+                              catch (err2)
                               {
-                                console.error(err.stack);
+                                console.error(err2.stack);
                                 resolve(trassNotChanged || true);
                               }
                             }
@@ -416,7 +419,7 @@ function extractStopsFromTrass(_points, busCode)
 
 function filterStops(e)
 {
-  return e['id'];
+  return e.id;
 }
 
 

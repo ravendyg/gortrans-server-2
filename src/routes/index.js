@@ -34,15 +34,15 @@ router.route('/sync').get(
     {
       routes:
       {
-        routes: routestimestamp < state.routestimestamp ? state.routes : [],
-        routeCodes: routestimestamp < state.routestimestamp ? state.routeCodes : [],
-        timestamp: routestimestamp < state.routestimestamp ? state.routestimestamp : routestimestamp
+        routes: !routestimestamp || routestimestamp < state.routestimestamp ? state.routes : [],
+        routeCodes: !routestimestamp || routestimestamp < state.routestimestamp ? state.routeCodes : [],
+        timestamp: !routestimestamp || routestimestamp < state.routestimestamp ? state.routestimestamp : routestimestamp
       },
       stopsData:
       {
-        stops: trassestimestamp < state.trassestimestamp ? state.stops : {},
-        busStops: trassestimestamp < state.trassestimestamp ? state.busStops : {},
-        timestamp: trassestimestamp < state.trassestimestamp ? state.trassestimestamp : trassestimestamp
+        stops: !trassestimestamp || trassestimestamp < state.trassestimestamp ? state.stops : {},
+        busStops: !trassestimestamp || trassestimestamp < state.trassestimestamp ? state.busStops : {},
+        timestamp: !trassestimestamp || trassestimestamp < state.trassestimestamp ? state.trassestimestamp : trassestimestamp
       }
     };
 

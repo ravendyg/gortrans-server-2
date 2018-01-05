@@ -439,8 +439,8 @@ function filterStops(e)
 
 function getTrass(busCode, tsp)
 {
-  return state.trassestimestamp > tsp
-    ?  state.trasses[busCode]
+  return !tsp || state.trassestimestamp > tsp
+    ? state.trasses[busCode]
     : null
     ;
 }

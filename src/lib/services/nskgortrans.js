@@ -2,6 +2,7 @@
 
 const request = require('request');
 const Bluebird = require('bluebird');
+const crypto = require('crypto');
 
 const models = require('../db/models');
 
@@ -66,8 +67,12 @@ models.Info.findOne({name: 'info'},
     {
       new Bluebird(fetchListOfRoutes)
       .then(
-        ({routeStr, routes, routeCodes}) =>
+        ({routes, routeCodes}) =>
         {
+          const hash = crypto.createHash('sha256');
+          hash.update(JSON.stringify(routes));
+          const routeStr = hash.digest('hex');
+
           state.routes = routes;
           state.routeCodes = routeCodes;
 
@@ -224,7 +229,10 @@ function fetchListOfRoutes(resolve, reject)
     {
       url: config.PROXY_URL,
       method: 'GET',
-      qs: { url: encodeURI(config.NSK_ROUTES) }
+      headers: {
+        'x-auth-token': config.API_KEY,
+        url: config.NSK_ROUTES,
+      },
     },
     getListOfRoutesResponseHandler.bind(this, resolve, reject)
   );
@@ -270,7 +278,7 @@ function getListOfRoutesResponseHandler(resolve, reject, err, httpResponse, body
           []
         );
 
-      resolve({routeStr: body, routes, routeCodes});
+      resolve({routes, routeCodes});
     }
     catch (_err)
     {
@@ -296,7 +304,10 @@ function fetchListOfAvailableBuses(codes, resolve, reject)
     {
       url: config.PROXY_URL,
       method: 'GET',
-      qs: { url: encodeURI(config.NSK_BUSES + codes) }
+      headers: {
+        'x-auth-token': config.API_KEY,
+        url: config.NSK_BUSES + codes,
+      },
     },
     getListOfAvailableBusesHandler.bind(this, resolve, reject, codes)
   );
@@ -362,7 +373,10 @@ function getVehicleTrass(busCode)
         {
           url: config.PROXY_URL,
           method: 'GET',
-          qs: { url: encodeURI(config.NSK_TRASSES + busCode) }
+          headers: {
+            'x-auth-token': config.API_KEY,
+            url: config.NSK_TRASSES + busCode,
+          },
         },
         getVehicleTrassResponseHandler.bind(this, resolve)
       );

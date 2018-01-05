@@ -1,16 +1,20 @@
 'use strict';
 
+const path = require('path');
+const globalConfig = require('/etc/project-config.d/config.json')
+
 const NSK_BASE_URL = 'http://maps.nskgortrans.ru/';
+const DATA_DIR = path.join(__dirname, '..', '..', 'data');
 
 const config =
 {
+  API_KEY: globalConfig.API_KEY,
   PORT: 3023,
 
-  MONGO_HOST: 'mongodb://localhost',
-  MONGO_PORT: 27017,
-  MONGO_DB_NAME: 'gortrans2',
+  DATA_DIR,
+  DATA_FILE: path.join(DATA_DIR, 'all-data.json'),
 
-  PROXY_URL: 'http://192.168.1.121:3012/echo',
+  PROXY_URL: 'http://192.168.1.68:3015/proxy',
 
   NSK_BASE_URL,
   NSK_ROUTES:   NSK_BASE_URL + 'listmarsh.php?r&r=true',

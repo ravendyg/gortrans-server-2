@@ -9,7 +9,6 @@ const config = require('../lib/config');
 const gortrans = require('../lib/services/nskgortrans');
 const dataProvider = require('../process/data-provider');
 
-const logger = require('../lib/db/log');
 
 /**
  * sync list of routes, bus lines, and bus stops
@@ -19,7 +18,6 @@ router.route('/sync').get(
   {
     let ip = req.headers['x-real-ip'];
     let apiKey = req.query.api_key;
-    let agent = req.headers['user-agent'];
     console.log(ip);
     if (!apiKey)
     {
@@ -49,9 +47,6 @@ router.route('/sync').get(
     };
 
     res.json(out);
-    logger.createRecord({
-      apiKey, action: 'sync', ip, target: '', agent
-    });
   }
 );
 
@@ -65,7 +60,10 @@ router.route('/stop-schedule').get(
       {
         url: config.PROXY_URL,
         method: 'GET',
-        qs: { url: encodeURI(`${config.NSK_FORECAST}id=${req.query.stopId}&type=platform`)}
+        headers: {
+          'x-auth-token': config.API_KEY,
+          url: `${config.NSK_FORECAST}id=${req.query.stopId}&type=platform`
+        },
       }
     )
     .pipe(res);

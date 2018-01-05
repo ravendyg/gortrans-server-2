@@ -3,8 +3,6 @@
 const dataProvider = require('../../process/data-provider');
 const gortrans = require('./nskgortrans');
 
-const logger = require('../db/log');
-
 let io;
 
 const listOfClients = {};
@@ -61,11 +59,6 @@ function start(server)
       };
 
       const apiKey = socket._info.apiKey;
-      socket._info.connectionDoc = logger.createRecord({
-        apiKey, action: 'connect',
-        ip: socket._info.ip, target: '',
-        agent: socket._info.agent
-      });
 
       if (!history[apiKey])
       {
@@ -129,29 +122,11 @@ function disconnect(socket)
     }
   }
   delete listOfClients[socket.id];
-
-  socket._info.connectionDoc
-  .then(_id =>
-  {
-    logger.recordEnd(_id);
-    for (let code of Object.keys(socket._info.requests))
-    {
-      socket._info.requests[code]
-      .then(logger.recordEnd);
-    }
-  });
 }
 
 function addBusListener(socket, busCode, tsp)
 {
   const apiKey = socket._info.apiKey;
-
-  socket._info.requests[busCode] =
-    logger.createRecord({
-      apiKey, action: 'listen',
-      ip: socket._info.ip, target: busCode,
-      agent: socket._info.agent
-    });
 
   // register listener
   listOfClients[socket.id].buses[busCode] = true;

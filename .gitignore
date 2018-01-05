@@ -4,3 +4,4 @@ tor/data-dir/tor*
 build/
 npm-debug.log
 .vscode
+data/

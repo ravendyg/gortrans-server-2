@@ -1,34 +1,17 @@
 'use strict';
 
-const mongoose = require('mongoose');
-const bluebird = require('bluebird');
-
+const fs = require('fs');
 const config = require('../config');
 
 function connectToDb(cb)
 {
-  mongoose.Promise = bluebird;
-  mongoose.connect(`mongodb://${config.MONGO_HOST}:${config.MONGO_PORT}/${config.MONGO_DB_NAME}`);
-  const db = mongoose.connection;
-
-  db.on(
-    'error',
-    err =>
-    {
-      console.error(err.stack, 'connection failed');
-      if (err.code !== 18 && err.message !== 'connection timeout')
-      { // not auth failure
-        connectToDb();
-      }
-    }
-  );
-
-  if (cb)
+  if (!fs.existsSync(config.DATA_DIR))
   {
-    db.once(
-      'open',
-      cb
-    );
+    fs.mkdirSync(config.DATA_DIR);
+  }
+  if (typeof cb === 'function')
+  {
+    cb();
   }
 }
 module.exports.connectToDb = connectToDb;

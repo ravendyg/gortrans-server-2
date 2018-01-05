@@ -1,19 +1,17 @@
 Next iteration of my struggle with maps.nskgortrans.ru.
 
-Plan to centralize data collection and then distribute them using sockets.
-
-Rewrite mobile app using Java.
+Trying to rewrite everything - this one is not supported. All changes are just hot fixes to make it survive for a while.
 
 &nbsp;
 
 ### Dependecies
-node 6.5.0, tsd 0.6.5, gulp
+node 8.*.*
 
 &nbsp;
 
 ### Installation
 ```
-npm run setup
+npm i
 ```
 
 &nbsp;

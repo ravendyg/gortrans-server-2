@@ -1,15 +1,15 @@
 'use strict';
 
-function hasKeys( obj )
+function hasKeys(obj)
 {
-	return Object.keys( obj ).length > 0;
+	return Object.keys(obj).length > 0;
 }
 
-function flatArrayToDict( acc, e)
+function flatArrayToDict(acc, e)
 {
-	for ( let key of Object.keys(e) )
+	for (let key of Object.keys(e))
 	{
-		acc[ key ] = e[ key ].reduce( busListToDict, {} );
+		acc[ key ] = e[ key ].reduce(busListToDict, {});
 	}
 	return acc;
 }

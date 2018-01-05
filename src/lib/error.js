@@ -1,15 +1,15 @@
 'use strict';
 
-function create( status, message, src )
+function create(status, message, src)
 {
-  var err = new Error( message );
+  var err = new Error(message);
   err.status = status;
   err.__stack = [ src ];
 
   return err;
 }
 
-function pass( err, passingPoint )
+function pass(err, passingPoint)
 {
   err.status = err.status || 500;
   err.message = err.message || 'server error';

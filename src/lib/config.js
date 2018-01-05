@@ -14,7 +14,7 @@ const config =
   DATA_DIR,
   DATA_FILE: path.join(DATA_DIR, 'all-data.json'),
 
-  PROXY_URL: 'http://192.168.1.68:3015/proxy',
+  PROXY_URL: 'http://127.0.0.1:3015/proxy',
 
   NSK_BASE_URL,
   NSK_ROUTES:   NSK_BASE_URL + 'listmarsh.php?r&r=true',

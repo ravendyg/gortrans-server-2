@@ -156,12 +156,7 @@ function addBusListener(socket, busCode, tsp)
 
 function removeBusListener(socket, code)
 {
-  socket._info.requests[code]
-  .then(_id =>
-  {
-    logger.recordEnd(_id);
-    delete socket._info.requests[code];
-  });
+  delete socket._info.requests[code];
 
   try
   {

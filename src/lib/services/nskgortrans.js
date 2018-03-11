@@ -63,8 +63,7 @@ models.Info.findOne({name: 'info'},
     }
 
 
-    function syncWithRu()
-    {
+    function syncWithRu() {
       new Bluebird(fetchListOfRoutes)
       .then(
         ({routes, routeCodes}) =>
@@ -97,8 +96,9 @@ models.Info.findOne({name: 'info'},
             );
           }
 
-let count = 0;
+          let count = 0;
           return routeCodes
+            // .slice(0, 10)
             .filter(config.FILTER_BUSES_OUT)  // remove buses we are not interested in
             .reduce(
               (acc, busCode) =>
@@ -158,9 +158,8 @@ let count = 0;
               Bluebird.resolve(true)
             )
             .then(
-              notChanged =>
-              {
-console.log(!notChanged);
+              notChanged => {
+                console.log(!notChanged);
                 if (!notChanged)
                 {
                   models.Info.update(
@@ -183,30 +182,27 @@ console.log(!notChanged);
             );
         }
       )
-      .then(
-        () =>
-        {
-console.log('updated');
-          models.Info.update(
-            { name: 'info' },
+      .then(() => {
+        console.log('updated');
+        models.Info.update(
+          { name: 'info' },
+          {
+            $set:
             {
-              $set:
-              {
-                updated: now
-              }
-            },
-            () => {}
-          );
+              updated: now
+            }
+          },
+          () => {}
+        );
 
-          let _date = new Date();
-          let nextDate = new Date(date.getTime() + 1000 * 60 * 60 * 24);
-          let next = Date.parse(nextDate.getFullYear() + '-' + (nextDate.getMonth() + 1) + '-' + nextDate.getDate());
-          setTimeout(
-            syncWithRu,
-            next - _date.getTime()
-          );
-        }
-      )
+        let _date = new Date();
+        let nextDate = new Date(date.getTime() + 1000 * 60 * 60 * 24);
+        let next = Date.parse(nextDate.getFullYear() + '-' + (nextDate.getMonth() + 1) + '-' + nextDate.getDate());
+        setTimeout(
+          syncWithRu,
+          next - _date.getTime()
+        );
+      })
       .catch(
         _err =>
         {

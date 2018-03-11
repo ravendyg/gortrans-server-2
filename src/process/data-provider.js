@@ -87,12 +87,8 @@ function fetchData()
   let calls = [ Bluebird.resolve({}) ];  // in case no calls required
 
   let keyList = [];
-  // for (let busCode of Object.keys(schedule))
-  let value, done;
-  let busCodes = schedule.keys();
-  while ({value, done} = busCodes.next(), !done)
-  {
-    keyList.push(value);
+  for (let busCode of schedule.values()) {
+    keyList.push(busCode);
 
     if (keyList.length === 5)
     {

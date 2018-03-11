@@ -25,8 +25,8 @@ router.route('/sync').get(
       return;
     }
 
-    let routestimestamp = +req.query.routestimestamp || 0;
-    let trassestimestamp = +req.query.stopstimestamp || 0;
+    let routestimestamp = +req.query.routestimestamp || 1;
+    let trassestimestamp = +req.query.stopstimestamp || 1;
 
     let state = gortrans.getState();
 
@@ -34,15 +34,15 @@ router.route('/sync').get(
     {
       routes:
       {
-        routes: !routestimestamp || routestimestamp < state.routestimestamp ? state.routes : [],
-        routeCodes: !routestimestamp || routestimestamp < state.routestimestamp ? state.routeCodes : [],
-        timestamp: !routestimestamp || routestimestamp < state.routestimestamp ? state.routestimestamp : routestimestamp
+        routes: routestimestamp === 1 || routestimestamp < state.routestimestamp ? state.routes : [],
+        routeCodes: routestimestamp === 1 || routestimestamp < state.routestimestamp ? state.routeCodes : [],
+        timestamp: routestimestamp < state.routestimestamp ? state.routestimestamp : routestimestamp
       },
       stopsData:
       {
-        stops: !trassestimestamp || trassestimestamp < state.trassestimestamp ? state.stops : {},
-        busStops: !trassestimestamp || trassestimestamp < state.trassestimestamp ? state.busStops : {},
-        timestamp: !trassestimestamp || trassestimestamp < state.trassestimestamp ? state.trassestimestamp : trassestimestamp
+        stops: trassestimestamp === 1 || trassestimestamp < state.trassestimestamp ? state.stops : {},
+        busStops: trassestimestamp === 1 || trassestimestamp < state.trassestimestamp ? state.busStops : {},
+        timestamp: trassestimestamp < state.trassestimestamp ? state.trassestimestamp : trassestimestamp
       }
     };
 

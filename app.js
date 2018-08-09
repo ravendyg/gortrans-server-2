@@ -11,6 +11,7 @@ const bodyParser = require('body-parser');
 var app = express();
 
 const routes = require('./src/routes');
+const routesV2 = require('./src/routes/v2');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -24,34 +25,30 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '..', 'gortrans-web', 'build')));
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use('/v2', routesV2);
 app.use('/', routes);
 
 // catch 404 and forward to error handler
-app.use(
-  function (req, res, next)
-  {
-    var err = new Error('Not Found');
-    err.status = 404;
-    next(err);
-  }
-);
+app.use((req, res) => {
+    res.statusCode = 404;
+    res.end();
+});
 
 // error handlers
+app.use((req, res) => {
+    res.statusCode = 404;
+    res.end();
+});
 
 // production error handler
-app.use(
-  function (err, req, res)
-  {
+app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
     res.status(err.status || 500);
-    if (err.status !== 404)
-    {
-      console.log((new Date()).toLocaleString());
-      console.error(err);
+    if (err.status !== 404) {
+        console.log((new Date()).toLocaleString());
+        console.error(err.stack);
     }
-
     res.status(err.status).end();
-  }
-);
+});
 
 
 module.exports = app;

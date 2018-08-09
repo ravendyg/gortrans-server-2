@@ -14,13 +14,11 @@ const dataProvider = require('../process/data-provider');
  * sync list of routes, bus lines, and bus stops
  */
 router.route('/sync').get(
-  (req, res) =>
-  {
+  (req, res) => {
     let ip = req.headers['x-real-ip'];
     let apiKey = req.query.api_key;
     console.log(ip);
-    if (!apiKey)
-    {
+    if (!apiKey) {
       res.status(404).send();
       return;
     }
@@ -54,8 +52,7 @@ router.route('/sync').get(
  * just pass through
  */
 router.route('/stop-schedule').get(
-  (req, res) =>
-  {
+  (req, res) => {
     request(
       {
         url: config.PROXY_URL,
@@ -74,15 +71,12 @@ router.route('/stop-schedule').get(
  * bus rasp
  */
 router.route('/bus-rasp').get(
-  (req, res) =>
-  {
+  (req, res) => {
     var rasp;
     var graphs = dataProvider.getCurrentState(req.query.busCode);
-    if (graphs)
-    {
+    if (graphs) {
       var data = graphs[req.query.graph];
-      if (data)
-      {
+      if (data) {
         rasp = data.rasp;
       }
     }
@@ -91,26 +85,21 @@ router.route('/bus-rasp').get(
   }
 );
 
-
-
 /* GET home page. */
 router.route('/').get(
-  function render(req, res)
-  {
+  function render(req, res) {
     res.render('index', {});
   }
 );
 
 router.route('/select-bus').get(
-  (req, res) =>
-  {
+  (req, res) => {
     res.redirect(301, '/');
   }
 );
 
 router.route('*').get(
-  (req, res) =>
-  {
+  (req, res) => {
     res.status(404).send('Not Found');
   }
 );

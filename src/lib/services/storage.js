@@ -35,13 +35,13 @@ function createStorageService({
         );
     };
 
-    const getTrassInfo = (routeKey) => {
-        const fileName = utils.getTrassStorageFileName(routeKey, config);
+    const getTrassInfo = (trassKey) => {
+        const fileName = utils.getTrassStorageFileName(trassKey, config);
         return _get(fileName);
     };
 
-    const setTrassInfo = (wrappedTrassInfo, routeKey) => {
-        const fileName = utils.getTrassStorageFileName(routeKey, config);
+    const setTrassInfo = (wrappedTrassInfo, trassKey) => {
+        const fileName = utils.getTrassStorageFileName(trassKey, config);
         return _set(fileName, wrappedTrassInfo);
     };
 

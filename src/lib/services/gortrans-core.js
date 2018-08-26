@@ -3,98 +3,50 @@ function createGortransService({
     logger,
     request,
 }) {
-    function getRoutesInfo() {
+    const _handle = (key, resolve, postHandler, httpErr, httpResponse, body) => {
+        if (httpErr) {
+            logger.error(httpErr);
+            return resolve(null);
+        } else if (httpResponse.statusCode !== 200) {
+            logger.error(`${key}: status code ${httpResponse.statusCode} - ${(body || '').slice(0, 100)}`);
+            return resolve(null);
+        } else {
+            try {
+                const data = JSON.parse(body);
+                if (typeof postHandler === 'function') {
+                    const _data = postHandler(data);
+                    return resolve(_data);
+                } else {
+                    return resolve(data);
+                }
+            } catch (_err) {
+                logger.error(`${key}: parse error - ${body}`);
+                return resolve(null);
+            }
+        }
+    };
+
+    const _get = (key, url, postHandler) => {
         return new Promise(resolve => {
             request(
                 {
                     headers: {
-                        url: config.NSK_ROUTES,
+                        url,
                         'x-auth-token': config.API_KEY,
                     },
                     method: 'GET',
                     url: config.PROXY_URL,
                 },
-                getRoutesInfoHandler.bind(this, resolve)
+                (httpErr, httpResponse, body) =>
+                    _handle(key, resolve, postHandler, httpErr, httpResponse, body)
             );
         });
-    }
-
-    function getRoutesInfoHandler(resolve, httpErr, httpResponse, body) {
-        if (httpErr) {
-            logger.error(httpErr);
-            return resolve(null);
-        } else if (httpResponse.statusCode !== 200) {
-            logger.error(`getRoutesInfo: status code ${httpResponse.statusCode} - ${(body || '').slice(0, 100)}`);
-            return resolve(null);
-        } else {
-            try {
-                let routes = JSON.parse(body);
-                resolve(routes);
-            } catch (_err) {
-                logger.error(`getRoutesInfo: parse error - ${body}`);
-                return resolve(null);
-            }
-        }
-    }
+    };
 
     return {
-        getRoutesInfo,
+        getRoutesInfo: () => _get('getRoutesInfo', config.NSK_ROUTES),
+        getTrassInfo: (trassKey, postHandler) => _get('getTrassInfo', config.NSK_TRASSES + trassKey, postHandler),
     };
 }
-
-// function getRoutesInfo(codes) {
-//     return new Promise((resolve, reject) => {
-//         request(
-//             {
-//                 url: config.PROXY_URL,
-//                 method: 'GET',
-//                 headers: {
-//                     'x-auth-token': config.API_KEY,
-//                     url: config.NSK_BUSES + codes,
-//                 },
-//             },
-//             getRoutesInfoHandler.bind(this, resolve, reject, codes)
-//         );
-//     });
-// }
-
-// function getRoutesInfoHandler(
-//     resolve, reject, codesQuery,
-//     httpErr, httpResponse, body
-// ) {
-//     if (httpErr) {
-//         return reject(httpErr);
-//     } else if (httpResponse.statusCode !== 200) {
-//         return reject(new Error(
-//             `getRoutesInfo: status code ${httpResponse.statusCode} - ${(body || '').slice(0, 100)}`
-//         ));
-//     } else {
-//         try {
-//             let data = JSON.parse(body).markers;
-//             debugger;
-//             var out =
-//                 data
-//                     .reduce(
-//                         (acc, e) => {
-//                             let code = e.id_typetr + '-' + e.marsh + '-W-' + e.title;
-//                             acc[code] = acc[code] ? acc[code].concat(e) : [e];
-//                             return acc;
-//                         },
-//                         {}
-//                     );
-
-//             let codes = codesQuery.split('|');
-//             for (let code of codes) { // in case there were no markers for this bus
-//                 if (!out[code]) {
-//                     out[code] = [];
-//                 }
-//             }
-
-//             resolve(out);
-//         } catch (parseError) {
-//             return reject(parseError);
-//         }
-//     }
-// }
 
 module.exports = createGortransService;

@@ -3,6 +3,7 @@ function createDataService({
     date,
     gortrans,
     logger,
+    mappers,
     storage,
 }) {
     async function getRoutesInfo() {
@@ -43,9 +44,44 @@ function createDataService({
         return routesInfoWrapper;
     };
 
-    async function getTrassInfo(routeKey) {
-        console.log(routeKey);
-        return null;
+    // TODO: can I remove repetition like in other services?
+    async function getTrassInfo(trassKey) {
+        let trassInfoWrapper;
+        let trassInfo;
+        let now = date.now();
+        const { mapV2TrassInfoIncoming } = mappers;
+
+        try {
+            trassInfoWrapper = await storage.getTrassInfo(trassKey);
+        } catch (fileError) {
+            logger.error(fileError);
+        }
+        if (!trassInfoWrapper) {
+            trassInfo = await gortrans.getTrassInfo(trassKey, mapV2TrassInfoIncoming);
+            if (trassInfo) {
+                trassInfoWrapper = {
+                    timestamp: now,
+                    trassInfo,
+                };
+                storage.setTrassInfo(trassInfoWrapper, trassKey);
+            }
+        } else if (trassInfoWrapper.timestamp + config.DATA_VALID_FOR < now) {
+            try {
+                const newTrassInfo = await gortrans.getTrassInfo(trassKey, mapV2TrassInfoIncoming);
+                if (JSON.stringify(trassInfo) !== JSON.stringify(newTrassInfo)) {
+                    trassInfo = newTrassInfo;
+                    trassInfoWrapper = {
+                        timestamp: now,
+                        trassInfo,
+                    };
+                    storage.setTrassInfo(trassInfoWrapper, trassKey);
+                }
+            } catch (httpError) {
+                logger.error(httpError);
+            }
+        }
+
+        return trassInfoWrapper;
     }
 
     return {

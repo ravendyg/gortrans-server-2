@@ -2,7 +2,7 @@ function createRouter({
     data,
     express,
     logger,
-    routesInfoMappers,
+    mappers,
     utils
 }) {
     const router = new express.Router();
@@ -25,7 +25,7 @@ function createRouter({
                 if (routesInfo) {
                     if (timestamp > _tsp) {
                         return res.json({
-                            data: routesInfoMappers.mapV2RoutesInfo(routesInfo)
+                            data: mappers.mapV2RoutesInfo(routesInfo)
                         });
                     } else {
                         res.statusCode = 304;
@@ -43,16 +43,33 @@ function createRouter({
     );
 
     router.get(
-        '/sync/route/:routeKey',
+        '/sync/trass/:trassKey',
         utils.verifyApiKey,
         async (req, res) => {
             logger.startRequestLog(req, res);
             try {
                 const { tsp } = req.query;
+                const { trassKey } = req.params;
                 const _tsp = parseInt(tsp) * 1000;
                 if (isNaN(_tsp)) {
                     return res.status(400).send('Missing timestamp');
                 }
+                const {
+                    timestamp,
+                    trassInfo,
+                } = await data.getTrassInfo(trassKey);
+                if (trassInfo) {
+                    if (timestamp > _tsp) {
+                        return res.json({
+                            data: mappers.mapV2TrassInfoOut(trassInfo)
+                        });
+                    } else {
+                        res.statusCode = 304;
+                        return res.end();
+                    }
+                }
+                res.statusCode = 404;
+                res.end();
             } catch (err) {
                 logger.error(err);
                 res.statusCode = 500;

@@ -10,6 +10,7 @@ const bodyParser = require('body-parser');
 const fs = require('fs');
 const request = require('request');
 
+const mappers = require('./src/lib/mappers/dto');
 const date = Date;
 const logger = require('./src/lib/services/logger')({
     date,
@@ -32,9 +33,9 @@ const data = require('./src/lib/services/data')({
     date,
     gortrans,
     logger,
+    mappers,
     storage,
-})
-const routesInfoMappers = require('./src/lib/mappers/routes-info');
+});
 
 var app = express();
 
@@ -43,7 +44,7 @@ const routesV2 = require('./src/routes/v2')({
     data,
     express,
     logger,
-    routesInfoMappers,
+    mappers,
     utils,
 });
 

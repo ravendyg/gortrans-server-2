@@ -8,10 +8,13 @@
   },
   "globals": {},
   "rules": {
+    "sort-keys": 2,
+    "sort-imports": 2,
     "prefer-spread": 2,
     "block-scoped-var": 2,
     "brace-style": [2, "1tbs", {"allowSingleLine": true }],
     "camelcase": 2,
+    "max-len": [2, 150],
     "comma-style": [
       2,
       "last"

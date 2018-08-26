@@ -1,36 +1,59 @@
-const Storage = require('./storage');
-const Gortrans = require('./gortrans-core');
-const config = require('../config');
+function createDataService({
+    config,
+    date,
+    gortrans,
+    logger,
+    storage,
+}) {
+    async function getRoutesInfo() {
+        let routesInfoWrapper;
+        let routesInfo;
+        let now = date.now();
 
-async function getRoutesInfo(tsp) {
-    let routesInfoWrapper;
-    const timestamp = Date.now();
-
-    try {
-        routesInfoWrapper = await Storage.getRoutesInfo();
-    } catch (fileError) {
-        console.error(fileError);
-    }
-    if (!routesInfoWrapper || routesInfoWrapper.tsp + config.DATA_VALID_FOR < tsp) {
         try {
-            routesInfoWrapper = {
-                routesInfo: await Gortrans.getRoutesInfo(),
-                tsp: timestamp,
-            };
-            Storage.setRoutesInfo(routesInfoWrapper);
-        } catch (httpError) {
-            console.error(httpError);
+            routesInfoWrapper = await storage.getRoutesInfo();
+        } catch (fileError) {
+            logger.error(fileError);
         }
-    } else if (routesInfoWrapper) {
-        return {
-            tsp: 0,
-            routesInfo: null,
-        };
+        if (!routesInfoWrapper) {
+            routesInfo = await gortrans.getRoutesInfo();
+            if (routesInfo) {
+                routesInfoWrapper = {
+                    routesInfo,
+                    timestamp: now,
+                };
+                storage.setRoutesInfo(routesInfoWrapper);
+            }
+        } else if (routesInfoWrapper.timestamp + config.DATA_VALID_FOR < now) {
+            try {
+                const newRoutesInfo = await gortrans.getRoutesInfo();
+                if (JSON.stringify(routesInfo) !== JSON.stringify(newRoutesInfo)) {
+                    routesInfo = newRoutesInfo;
+                    routesInfoWrapper = {
+                        routesInfo,
+                        timestamp: now,
+                    };
+                    storage.setRoutesInfo(routesInfoWrapper);
+                }
+            } catch (httpError) {
+                logger.error(httpError);
+            }
+        }
+
+        return routesInfoWrapper;
+    };
+
+    async function getTrassInfo(routeKey) {
+        console.log(routeKey);
+        return null;
     }
 
-    return routesInfoWrapper;
-};
+    return {
+        getRoutesInfo,
+        getTrassInfo,
+    };
+}
 
-module.exports = {
-    getRoutesInfo,
-};
+
+
+module.exports = createDataService;

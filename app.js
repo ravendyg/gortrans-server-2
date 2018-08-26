@@ -4,21 +4,55 @@
 const express = require('express');
 const path = require('path');
 const favicon = require('serve-favicon');
-const logger = require('morgan');
+const _logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+const fs = require('fs');
+const request = require('request');
+
+const date = Date;
+const logger = require('./src/lib/services/logger')({
+    date,
+});
+const config = require('./src/lib/config');
+const utils = require('./src/lib/utils');
+const storage = require('./src/lib/services/storage')({
+    config,
+    fs,
+    logger,
+    utils,
+});
+const gortrans = require('./src/lib/services/gortrans-core')({
+    config,
+    logger,
+    request,
+});
+const data = require('./src/lib/services/data')({
+    config,
+    date,
+    gortrans,
+    logger,
+    storage,
+})
+const routesInfoMappers = require('./src/lib/mappers/routes-info');
 
 var app = express();
 
 const routes = require('./src/routes');
-const routesV2 = require('./src/routes/v2');
+const routesV2 = require('./src/routes/v2')({
+    data,
+    express,
+    logger,
+    routesInfoMappers,
+    utils,
+});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-app.use(logger('dev'));
+app.use(_logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());

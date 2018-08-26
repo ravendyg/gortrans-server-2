@@ -1,4 +1,4 @@
-'use strict';
+const path = require('path');
 
 function hasKeys(obj) {
     return Object.keys(obj).length > 0;
@@ -6,32 +6,34 @@ function hasKeys(obj) {
 
 function flatArrayToDict(acc, e) {
     for (let key of Object.keys(e)) {
-        acc[key] = e[key].reduce(busListToDict, {});
+        acc[ key ] = e[ key ].reduce(busListToDict, {});
     }
     return acc;
 }
 
 function busListToDict(acc, bus) {
-    acc[bus.graph] = bus;
+    acc[ bus.graph ] = bus;
     return acc;
 }
 
-function getIp(req, res, next) {
-    let ip = req.headers['x-real-ip'];
+function verifyApiKey(req, res, next) {
     let apiKey = req.query.api_key;
-    console.log(ip);
     if (!apiKey) {
-      let err = new Error('Not authorized');
-      err.status = 403;
-      return next(err);
+        let err = new Error('Not authorized');
+        err.status = 403;
+        return next(err);
     }
     return next();
 }
 
+const getTrassStorageFileName = (trassKey, config) =>
+    path.join(config.DATA_DIR, `trass_info_${trassKey}.json`);
+
 const utils = {
-    hasKeys,
     flatArrayToDict,
-    getIp,
+    getTrassStorageFileName,
+    hasKeys,
+    verifyApiKey,
 };
 
 module.exports = utils;

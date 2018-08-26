@@ -1,36 +1,61 @@
-const fs = require('fs');
-
-const config = require('../config');
-
-const getRoutesInfo = () => {
-    return new Promise((resolve, reject) => {
-        fs.exists(config.DATA_ROUTES_INFO_FILE, exists => {
-            if (!exists) {
-                return resolve(null);
-            }
-            fs.readFile(config.DATA_ROUTES_INFO_FILE, (readErr, result) => {
-                if (readErr) {
-                    return reject(readErr);
+function createStorageService({
+    config,
+    logger,
+    fs,
+    utils,
+}) {
+    const _get = (fileName) => {
+        return new Promise((resolve, reject) => {
+            fs.exists(fileName, exists => {
+                if (!exists) {
+                    return resolve(null);
                 }
-                try {
-                    return resolve(JSON.parse(result));
-                } catch (parseErr) {
-                    return reject(parseErr);
-                }
+                fs.readFile(fileName, (readErr, result) => {
+                    if (readErr) {
+                        return reject(readErr);
+                    }
+                    try {
+                        return resolve(JSON.parse(result));
+                    } catch (parseErr) {
+                        return reject(parseErr);
+                    }
+                });
             });
         });
-    });
-};
+    };
 
-const setRoutesInfo = (wrappedRoutesInfo) => {
-    fs.writeFile(
-        config.DATA_ROUTES_INFO_FILE,
-        JSON.stringify(wrappedRoutesInfo),
-        { encoding: 'utf8' }
-    );
+    const _set = (fileName, data) => {
+        fs.writeFile(fileName, JSON.stringify(data),
+            { encoding: 'utf8' },
+            (err) => {
+                if (err) {
+                    logger.error(err.stack);
+                }
+            },
+        );
+    };
+
+    const getTrassInfo = (routeKey) => {
+        const fileName = utils.getTrassStorageFileName(routeKey, config);
+        return _get(fileName);
+    };
+
+    const setTrassInfo = (wrappedTrassInfo, routeKey) => {
+        const fileName = utils.getTrassStorageFileName(routeKey, config);
+        return _set(fileName, wrappedTrassInfo);
+    };
+
+    const getRoutesInfo = () => _get(config.DATA_ROUTES_INFO_FILE);
+
+    const setRoutesInfo = (wrappedRoutesInfo) =>
+        _set(config.DATA_ROUTES_INFO_FILE, wrappedRoutesInfo);
+
+    return {
+        getRoutesInfo,
+        getTrassInfo,
+        setRoutesInfo,
+        setTrassInfo,
+    };
 }
 
-module.exports = {
-    getRoutesInfo,
-    setRoutesInfo,
-};
+module.exports = createStorageService;

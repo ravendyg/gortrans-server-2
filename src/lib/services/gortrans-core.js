@@ -1,40 +1,45 @@
-const request = require('request');
-
-const config = require('../config');
-
-function getRoutesInfo() {
-    return new Promise((resolve, reject) => {
-        request(
-            {
-                url: config.PROXY_URL,
-                method: 'GET',
-                headers: {
-                    'x-auth-token': config.API_KEY,
-                    url: config.NSK_ROUTES,
+function createGortransService({
+    config,
+    logger,
+    request,
+}) {
+    function getRoutesInfo() {
+        return new Promise(resolve => {
+            request(
+                {
+                    headers: {
+                        url: config.NSK_ROUTES,
+                        'x-auth-token': config.API_KEY,
+                    },
+                    method: 'GET',
+                    url: config.PROXY_URL,
                 },
-            },
-            getRoutesInfoHandler.bind(this, resolve, reject)
-        );
-    });
-}
+                getRoutesInfoHandler.bind(this, resolve)
+            );
+        });
+    }
 
-function getRoutesInfoHandler(resolve, reject, httpErr, httpResponse, body) {
-    if (httpErr) {
-        return reject(httpErr);
-    } else if (httpResponse.statusCode !== 200) {
-        return reject(new Error(
-            `getRoutesInfo: status code ${httpResponse.statusCode} - ${(body || '').slice(0, 100)}`
-        ));
-    } else {
-        try {
-            let routes = JSON.parse(body);
-            resolve(routes);
-        } catch (_err) {
-            return reject(new Error(
-                `getRoutesInfo: parse error - ${body}`
-            ));
+    function getRoutesInfoHandler(resolve, httpErr, httpResponse, body) {
+        if (httpErr) {
+            logger.error(httpErr);
+            return resolve(null);
+        } else if (httpResponse.statusCode !== 200) {
+            logger.error(`getRoutesInfo: status code ${httpResponse.statusCode} - ${(body || '').slice(0, 100)}`);
+            return resolve(null);
+        } else {
+            try {
+                let routes = JSON.parse(body);
+                resolve(routes);
+            } catch (_err) {
+                logger.error(`getRoutesInfo: parse error - ${body}`);
+                return resolve(null);
+            }
         }
     }
+
+    return {
+        getRoutesInfo,
+    };
 }
 
 // function getRoutesInfo(codes) {
@@ -92,6 +97,4 @@ function getRoutesInfoHandler(resolve, reject, httpErr, httpResponse, body) {
 //     }
 // }
 
-module.exports = {
-    getRoutesInfo,
-};
+module.exports = createGortransService;

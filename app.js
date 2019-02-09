@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /* global __dirname */
 'use strict';
 
@@ -10,6 +12,7 @@ const bodyParser = require('body-parser');
 const fs = require('fs');
 const request = require('request');
 const crypto = require('crypto');
+const http = require('http');
 
 const mappers = require('./src/lib/mappers/dto');
 const date = Date;
@@ -39,6 +42,8 @@ const data = require('./src/lib/services/data')({
     mappers,
     storage,
 });
+const socket = require('./src/lib/services/socket');
+const webSocket = require('./src/lib/services/webSocket');
 
 var app = express();
 
@@ -87,10 +92,34 @@ app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
     res.status(err.status).end();
 });
 
-
-module.exports = app;
-
-
 // process
 const dataProvider = require('./src/process/data-provider');
 dataProvider.startProcess();
+
+const server = http.createServer(app);
+socket.start(server);
+webSocket.start({
+    server,
+    dataProvider,
+    logger,
+    date,
+});
+
+server.listen(config.PORT);
+server.on('error', onError);
+server.on('listening', onListening);
+
+function onError(error) {
+    logger.error(error);
+    process.exit(1);
+}
+
+function onListening() {
+    var addr = server.address();
+    var bind = typeof addr === 'string'
+        ? 'pipe ' + addr
+        : 'port ' + addr.port;
+    console.log('Listening on ' + bind);
+}
+
+module.exports = app;

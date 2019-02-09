@@ -74,8 +74,8 @@ function start(server) {
                     if (changes[busCode] &&
                         Object.keys(changes[busCode].add).length +
                         Object.keys(changes[busCode].update).length +
-                        changes[busCode].remove.length
-                        > 0) {
+                        changes[busCode].remove.length > 0
+                    ) {
                         dispatchRequired = true;
                         parcel[busCode] = changes[busCode];
                     }
@@ -123,7 +123,7 @@ function addBusListener(socket, busCode, tsp) {
 
     // send current state
     let _state = {};
-    _state[busCode] = dataProvider.getCurrentState(busCode);
+    _state[busCode] = dataProvider.getCurrentState(busCode) || {};
     socket.emit(
         'bus listener created',
         busCode,

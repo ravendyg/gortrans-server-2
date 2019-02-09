@@ -1,18 +1,16 @@
-const path = require('path');
-
 function hasKeys(obj) {
     return Object.keys(obj).length > 0;
 }
 
 function flatArrayToDict(acc, e) {
     for (let key of Object.keys(e)) {
-        acc[ key ] = e[ key ].reduce(busListToDict, {});
+        acc[key] = e[key].reduce(busListToDict, {});
     }
     return acc;
 }
 
 function busListToDict(acc, bus) {
-    acc[ bus.graph ] = bus;
+    acc[bus.graph] = bus;
     return acc;
 }
 
@@ -26,8 +24,7 @@ function verifyApiKey(req, res, next) {
     return next();
 }
 
-const getTrassStorageFileName = (trassKey, config) =>
-    path.join(config.DATA_DIR, `trass_info_${trassKey}.json`);
+const getTrassStorageFileName = (trassKey) => `trass_info_${trassKey}.json`;
 
 const utils = {
     flatArrayToDict,

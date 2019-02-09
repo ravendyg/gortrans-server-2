@@ -17,23 +17,10 @@ const mapV2RoutesInfo = routesInfo =>
 const mapV2TrassInfoIncoming = trassInfoRaw => {
     return trassInfoRaw.trasses[0].r[0].u
         .map((item) => {
-            let res = { lat: item.lat, lng: item.lng, };
-            if (item.n) {
-                res.name = item.n;
-            }
-            if (item.id) {
-                res.id = item.id;
-            }
-            return res;
-        });
-}
-
-const mapV2TrassInfoOut = trassInfo => {
-    return trassInfo
-        .map((item) => {
-            let res = { g: item.lng, t: item.lat, };
-            if (item.name) {
-                res.n = item.name;
+            let res = { t: item.lat, g: item.lng, };
+            const name = item.name || item.n;
+            if (name) {
+                res.n = name;
             }
             if (item.id) {
                 res.i = item.id;
@@ -45,5 +32,4 @@ const mapV2TrassInfoOut = trassInfo => {
 module.exports = {
     mapV2RoutesInfo,
     mapV2TrassInfoIncoming,
-    mapV2TrassInfoOut,
 };

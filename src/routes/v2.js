@@ -2,7 +2,6 @@ function createRouter({
     data,
     express,
     logger,
-    mappers,
     utils
 }) {
     const router = new express.Router();
@@ -15,8 +14,8 @@ function createRouter({
             const { hash: userHash } = req.query;
             try {
                 const {
-                    routesInfo,
                     hash,
+                    routesInfo,
                 } = await data.getRoutesInfo();
                 if (!routesInfo) {
                     res.statusCode = 404;
@@ -44,27 +43,23 @@ function createRouter({
         async (req, res) => {
             logger.startRequestLog(req, res);
             try {
-                const { tsp } = req.query;
                 const { trassKey } = req.params;
-                const _tsp = parseInt(tsp) * 1000;
-                if (isNaN(_tsp)) {
-                    return res.status(400).send('Missing timestamp');
-                }
+                const { hash: userHash } = req.query
                 const {
-                    timestamp,
+                    hash,
                     trassInfo,
                 } = await data.getTrassInfo(trassKey);
-                if (trassInfo) {
-                    if (timestamp > _tsp) {
-                        return res.json({
-                            data: mappers.mapV2TrassInfoOut(trassInfo)
-                        });
-                    } else {
-                        res.statusCode = 304;
-                        return res.end();
-                    }
+                if (!trassInfo) {
+                    res.statusCode = 404;
+                    return res.end();
                 }
-                res.statusCode = 404;
+                if (hash !== userHash) {
+                    return res.json({
+                        data: trassInfo,
+                        hash,
+                    });
+                }
+                res.statusCode = 204;
                 res.end();
             } catch (err) {
                 logger.error(err);

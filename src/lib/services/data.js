@@ -12,7 +12,7 @@ function createDataService({
         let now = date.now();
 
         let routesInfoWrapper = await storage.getRoutesInfo();
-        if (routesInfoWrapper && routesInfoWrapper.timestamp < now + config.DATA_VALID_FOR) {
+        if (routesInfoWrapper && routesInfoWrapper.timestamp + config.DATA_VALID_FOR > now) {
             return routesInfoWrapper;
         }
 
@@ -29,7 +29,7 @@ function createDataService({
                 storage.setRoutesInfo(routesInfoWrapper);
             }
         } catch (err) {
-            console.error(err);
+            logger.error(err);
         }
 
         return routesInfoWrapper;
@@ -37,39 +37,28 @@ function createDataService({
 
     // TODO: can I remove repetition like this in other services?
     async function getTrassInfo(trassKey) {
-        let trassInfoWrapper;
         let trassInfo;
         let now = date.now();
-        const { mapV2TrassInfoIncoming } = mappers;
+
+        let trassInfoWrapper = await storage.getTrassInfo(trassKey);
+        if (trassInfoWrapper && trassInfoWrapper.timestamp + config.DATA_VALID_FOR > now) {
+            return trassInfoWrapper;
+        }
 
         try {
-            trassInfoWrapper = await storage.getTrassInfo(trassKey);
-        } catch (fileError) {
-            logger.error(fileError);
-        }
-        if (!trassInfoWrapper) {
-            trassInfo = await gortrans.getTrassInfo(trassKey, mapV2TrassInfoIncoming);
+            trassInfo = await gortrans.getTrassInfo(trassKey, mappers.mapV2TrassInfoIncoming);
             if (trassInfo) {
+                const hash = crypto.createHash('md5').update(JSON.stringify(trassInfo)).digest('hex');
                 trassInfoWrapper = {
+                    hash,
                     timestamp: now,
                     trassInfo,
+                    trassKey,
                 };
-                storage.setTrassInfo(trassInfoWrapper, trassKey);
+                storage.setTrassInfo(trassInfoWrapper);
             }
-        } else if (trassInfoWrapper.timestamp + config.DATA_VALID_FOR < now) {
-            try {
-                const newTrassInfo = await gortrans.getTrassInfo(trassKey, mapV2TrassInfoIncoming);
-                if (JSON.stringify(trassInfo) !== JSON.stringify(newTrassInfo)) {
-                    trassInfo = newTrassInfo;
-                    trassInfoWrapper = {
-                        timestamp: now,
-                        trassInfo,
-                    };
-                    storage.setTrassInfo(trassInfoWrapper, trassKey);
-                }
-            } catch (httpError) {
-                logger.error(httpError);
-            }
+        } catch (err) {
+            logger.error(err);
         }
 
         return trassInfoWrapper;

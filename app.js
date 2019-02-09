@@ -47,7 +47,6 @@ const routesV2 = require('./src/routes/v2')({
     data,
     express,
     logger,
-    mappers,
     utils,
 });
 

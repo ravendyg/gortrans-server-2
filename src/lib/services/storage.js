@@ -25,17 +25,21 @@ function createStorageService({
     });
 
     const _get = async (fileName) => {
-        let filePath = path.join(config.DATA_DIR, fileName);
-        let exists = await existsPromised(filePath);
-        if (exists) {
-            return await readPromised(filePath);
-        } else {
-            return null;
+        try {
+            let filePath = path.join(config.DATA_DIR, fileName);
+            let exists = await existsPromised(filePath);
+            if (exists) {
+                return await readPromised(filePath);
+            }
+        } catch (err) {
+            this.logger.error(err);
         }
+        return null;
     };
 
     const _set = (fileName, data) => {
-        fs.writeFile(fileName, JSON.stringify(data),
+        let filePath = path.join(config.DATA_DIR, fileName);
+        fs.writeFile(filePath, JSON.stringify(data),
             { encoding: 'utf8' },
             (err) => {
                 if (err) {
@@ -46,12 +50,13 @@ function createStorageService({
     };
 
     const getTrassInfo = (trassKey) => {
-        const fileName = utils.getTrassStorageFileName(trassKey, config);
+        const fileName = utils.getTrassStorageFileName(trassKey);
         return _get(fileName);
     };
 
-    const setTrassInfo = (wrappedTrassInfo, trassKey) => {
-        const fileName = utils.getTrassStorageFileName(trassKey, config);
+    const setTrassInfo = (wrappedTrassInfo) => {
+        const { trassKey } = wrappedTrassInfo;
+        const fileName = utils.getTrassStorageFileName(trassKey);
         return _set(fileName, wrappedTrassInfo);
     };
 

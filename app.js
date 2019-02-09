@@ -9,6 +9,7 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const request = require('request');
+const crypto = require('crypto');
 
 const mappers = require('./src/lib/mappers/dto');
 const date = Date;
@@ -19,8 +20,9 @@ const config = require('./src/lib/config');
 const utils = require('./src/lib/utils');
 const storage = require('./src/lib/services/storage')({
     config,
-    fs,
     logger,
+    fs,
+    path,
     utils,
 });
 const gortrans = require('./src/lib/services/gortrans-core')({
@@ -30,6 +32,7 @@ const gortrans = require('./src/lib/services/gortrans-core')({
 });
 const data = require('./src/lib/services/data')({
     config,
+    crypto,
     date,
     gortrans,
     logger,

@@ -11,8 +11,10 @@ const config = {
     PORT: 3023,
 
     DATA_DIR,
+
     DATA_FILE: path.join(DATA_DIR, 'all-data.json'),
-    DATA_ROUTES_INFO_FILE: path.join(DATA_DIR, 'routes_info.json'),
+
+    DATA_ROUTES_INFO_FILE: 'routes_info.json',
 
     PROXY_URL: 'http://127.0.0.1:3015/proxy',
 

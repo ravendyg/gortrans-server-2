@@ -12,27 +12,23 @@ function createRouter({
         utils.verifyApiKey,
         async (req, res) => {
             logger.startRequestLog(req, res);
+            const { hash: userHash } = req.query;
             try {
-                const { tsp } = req.query;
-                const _tsp = parseInt(tsp) * 1000;
-                if (isNaN(_tsp)) {
-                    return res.status(400).send('Missing timestamp');
-                }
                 const {
                     routesInfo,
-                    timestamp,
+                    hash,
                 } = await data.getRoutesInfo();
-                if (routesInfo) {
-                    if (timestamp > _tsp) {
-                        return res.json({
-                            data: mappers.mapV2RoutesInfo(routesInfo)
-                        });
-                    } else {
-                        res.statusCode = 304;
-                        return res.end();
-                    }
+                if (!routesInfo) {
+                    res.statusCode = 404;
+                    return res.end();
                 }
-                res.statusCode = 404;
+                if (hash !== userHash) {
+                    return res.json({
+                        data: routesInfo,
+                        hash,
+                    });
+                }
+                res.statusCode = 204;
                 res.end();
             } catch (err) {
                 logger.error(err);

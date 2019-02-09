@@ -5,46 +5,37 @@ function createDataService({
     logger,
     mappers,
     storage,
+    crypto,
 }) {
     async function getRoutesInfo() {
-        let routesInfoWrapper;
         let routesInfo;
         let now = date.now();
 
-        try {
-            routesInfoWrapper = await storage.getRoutesInfo();
-        } catch (fileError) {
-            logger.error(fileError);
+        let routesInfoWrapper = await storage.getRoutesInfo();
+        if (routesInfoWrapper && routesInfoWrapper.timestamp < now + config.DATA_VALID_FOR) {
+            return routesInfoWrapper;
         }
-        if (!routesInfoWrapper) {
-            routesInfo = await gortrans.getRoutesInfo();
+
+        try {
+            const _routesInfo = await gortrans.getRoutesInfo();
+            routesInfo = mappers.mapV2RoutesInfo(_routesInfo);
             if (routesInfo) {
+                const hash = crypto.createHash('md5').update(JSON.stringify(routesInfo)).digest('hex');
                 routesInfoWrapper = {
+                    hash,
                     routesInfo,
                     timestamp: now,
                 };
                 storage.setRoutesInfo(routesInfoWrapper);
             }
-        } else if (routesInfoWrapper.timestamp + config.DATA_VALID_FOR < now) {
-            try {
-                const newRoutesInfo = await gortrans.getRoutesInfo();
-                if (JSON.stringify(routesInfo) !== JSON.stringify(newRoutesInfo)) {
-                    routesInfo = newRoutesInfo;
-                    routesInfoWrapper = {
-                        routesInfo,
-                        timestamp: now,
-                    };
-                    storage.setRoutesInfo(routesInfoWrapper);
-                }
-            } catch (httpError) {
-                logger.error(httpError);
-            }
+        } catch (err) {
+            console.error(err);
         }
 
         return routesInfoWrapper;
     };
 
-    // TODO: can I remove repetition like in other services?
+    // TODO: can I remove repetition like this in other services?
     async function getTrassInfo(trassKey) {
         let trassInfoWrapper;
         let trassInfo;
@@ -89,7 +80,5 @@ function createDataService({
         getTrassInfo,
     };
 }
-
-
 
 module.exports = createDataService;

@@ -25,7 +25,7 @@ module.exports = {
     getState: () => state,
 };
 
-models.Info.findOne({ name: 'info' },
+false && models.Info.findOne({ name: 'info' },
     (err, info) => {
         // initial state reload
         if (info) {
@@ -74,12 +74,12 @@ models.Info.findOne({ name: 'info' },
                                 { name: 'info' },
                                 {
                                     $set:
-                                        {
-                                            routes,
-                                            routeStr,
-                                            routeCodes,
-                                            routestimestamp: timestamp
-                                        }
+                                    {
+                                        routes,
+                                        routeStr,
+                                        routeCodes,
+                                        routestimestamp: timestamp
+                                    }
                                 },
                                 () => { }
                             );
@@ -141,13 +141,13 @@ models.Info.findOne({ name: 'info' },
                                             { name: 'info' },
                                             {
                                                 $set:
-                                                    {
-                                                        trassesStr: info.trassesStr,
-                                                        trasses: state.trasses,
-                                                        stops: state.stops,
-                                                        busStops: state.busStops,
-                                                        trassestimestamp: timestamp,
-                                                    }
+                                                {
+                                                    trassesStr: info.trassesStr,
+                                                    trasses: state.trasses,
+                                                    stops: state.stops,
+                                                    busStops: state.busStops,
+                                                    trassestimestamp: timestamp,
+                                                }
                                             },
                                             () => { }
                                         );
@@ -164,9 +164,9 @@ models.Info.findOne({ name: 'info' },
                             { name: 'info' },
                             {
                                 $set:
-                                    {
-                                        updated: now
-                                    }
+                                {
+                                    updated: now
+                                }
                             },
                             () => { }
                         );

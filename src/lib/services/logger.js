@@ -10,11 +10,12 @@ module.exports = ({ date }) => {
             map.set(req, date.now());
             const finish = () => {
                 const ip = req.headers['x-real-ip'];
+                const apiKey = req.query.api_key || '';
                 const tsp = map.get(req);
                 const len = tsp
                     ? date.now() - tsp
                     : '';
-                logger.log(`${ip} ${req.method} ${req.url} ${res.statusCode} ${len}`);
+                logger.log(`${ip} ${apiKey} ${req.method} ${req.url} ${res.statusCode} ${len}`);
             };
             res._oldEnd = res.end;
             res._oldSend = res.send;

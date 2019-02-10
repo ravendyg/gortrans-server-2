@@ -8,7 +8,7 @@ const DATA_DIR = path.join(__dirname, '..', '..', 'data');
 
 const config = {
     API_KEY: globalConfig.API_KEY,
-    PORT: 3023,
+    PORT: 3024,
 
     DATA_DIR,
 

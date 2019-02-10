@@ -6,6 +6,7 @@ const messageTypes = {
     UNSUBSCRIBE: 2,
     STATE: 3,
     UPDATE: 4,
+    DROP: 5,
 };
 
 const connections = new Map();
@@ -58,14 +59,20 @@ function start({
                         busListeners[code].add(info);
                         dataProvider.addBusToSchedule(code);
                         const add = dataProvider.getCurrentState(code);
+                        let message;
                         if (add) {
                             const payload = { [code]: { add } };
-                            const message = {
+                            message = {
                                 type: messageTypes.STATE,
                                 payload,
                             };
-                            ws.send(JSON.stringify(message));
+                        } else {
+                            message = {
+                                type: messageTypes.DROP,
+                                payload: code,
+                            };
                         }
+                        ws.send(JSON.stringify(message));
                         break;
                     }
                     case messageTypes.UNSUBSCRIBE: {

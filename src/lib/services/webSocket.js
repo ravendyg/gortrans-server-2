@@ -31,16 +31,18 @@ function start({
                 return acc;
             }, {});
 
+        const apiKey = query.api_key;
+        logger.log('connected: ' + apiKey);
         const info = {
             ws,
             connected: date.now(),
             buses: [],
-            apiKey: query.api_key,
+            apiKey,
         };
         connections.set(ws, info);
 
         ws.on('close', () => {
-            logger.log('closed');
+            logger.log('disconnected: ' + apiKey);
             connections.delete(ws);
         });
 

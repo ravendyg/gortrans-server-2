@@ -63,7 +63,7 @@ function createStorageService({
     const getRoutesInfo = () => _get(config.DATA_ROUTES_INFO_FILE);
 
     const setRoutesInfo = (wrappedRoutesInfo) =>
-        _set(path.join(config.DATA_DIR, config.DATA_ROUTES_INFO_FILE), wrappedRoutesInfo);
+        _set(config.DATA_ROUTES_INFO_FILE, wrappedRoutesInfo);
 
     return {
         getRoutesInfo,

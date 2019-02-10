@@ -35,7 +35,6 @@ function createDataService({
         return routesInfoWrapper;
     };
 
-    // TODO: can I remove repetition like this in other services?
     async function getTrassInfo(trassKey) {
         let trassInfo;
         let now = date.now();

@@ -1,13 +1,8 @@
 #!/usr/bin/env node
 
-/* global __dirname */
-'use strict';
-
 const express = require('express');
 const path = require('path');
-const favicon = require('serve-favicon');
 const _logger = require('morgan');
-const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const request = require('request');
@@ -42,12 +37,10 @@ const data = require('./src/lib/services/data')({
     mappers,
     storage,
 });
-const socket = require('./src/lib/services/socket');
 const webSocket = require('./src/lib/services/webSocket');
 
 var app = express();
 
-const routes = require('./src/routes');
 const routesV2 = require('./src/routes/v2')({
     data,
     express,
@@ -55,20 +48,10 @@ const routesV2 = require('./src/routes/v2')({
     utils,
 });
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
-
-app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(_logger('dev'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, '..', 'gortrans-web', 'build')));
-app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/v2', routesV2);
-app.use('/', routes);
 
 // catch 404 and forward to error handler
 app.use((req, res) => {
@@ -97,7 +80,6 @@ const dataProvider = require('./src/process/data-provider');
 dataProvider.startProcess();
 
 const server = http.createServer(app);
-socket.start(server);
 webSocket.start({
     server,
     dataProvider,

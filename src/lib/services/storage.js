@@ -5,6 +5,10 @@ function createStorageService({
     path,
     utils,
 }) {
+    if (!fs.existsSync(config.DATA_DIR)) {
+        fs.mkdirSync(config.DATA_DIR);
+    }
+
     const existsPromised = (filePath) => new Promise(resolve => {
         fs.exists(filePath, exists => {
             return resolve(exists);

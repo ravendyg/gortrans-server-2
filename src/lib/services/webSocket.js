@@ -5,8 +5,7 @@ const messageTypes = {
     SUBSCRIBE: 1,
     UNSUBSCRIBE: 2,
     STATE: 3,
-    UPDATE: 4,
-    DROP: 5,
+    CONFIRM: 4,
 };
 
 const connections = new Map();
@@ -38,6 +37,7 @@ function start({
             ws,
             connected: date.now(),
             buses: [],
+            confirmedId: '',
             apiKey,
         };
         connections.set(ws, info);
@@ -49,7 +49,7 @@ function start({
 
         ws.on('message', data => {
             try {
-                const { type, code } = JSON.parse(data);
+                const { type, code, confirmedId } = JSON.parse(data);
                 switch (type) {
                     case messageTypes.SUBSCRIBE: {
                         info.buses = [...info.buses, code];
@@ -58,23 +58,23 @@ function start({
                         }
                         busListeners[code].add(info);
                         dataProvider.addBusToSchedule(code);
-                        const add = dataProvider.getCurrentState(code);
+                        const reset = dataProvider.getCurrentState(code) || {};
+                        const stateId = dataProvider.getStateId();
                         let message;
-                        if (add) {
-                            const payload = { [code]: { add } };
-                            message = {
-                                type: messageTypes.STATE,
-                                payload,
-                            };
-                        } else {
-                            message = {
-                                type: messageTypes.DROP,
-                                payload: code,
-                            };
-                        }
+                        const payload = {
+                            id: stateId,
+                            data: {
+                                [code]: { reset },
+                            },
+                        };
+                        message = {
+                            type: messageTypes.STATE,
+                            payload,
+                        };
                         ws.send(JSON.stringify(message));
                         break;
                     }
+
                     case messageTypes.UNSUBSCRIBE: {
                         info.buses = info.buses.filter(_code => _code !== code);
                         busListeners[code].delete(info);
@@ -84,6 +84,11 @@ function start({
                         }
                         break;
                     }
+
+                    case messageTypes.CONFIRM: {
+                        info.confirmedId = confirmedId;
+                        break;
+                    }
                 }
             } catch (e) {
                 logger.error(e);
@@ -91,23 +96,34 @@ function start({
         });
     });
 
-    dataProvider.subscribe(changes => {
-        connections.forEach(({ ws, buses }) => {
-            const payload = {};
+    dataProvider.subscribe((changes, state) => {
+        const { id, prevId } = state;
+        connections.forEach(({ ws, buses, confirmedId }) => {
+            const payload = { id, data: {} };
             let dispatchRequired = false;
             buses.forEach(busCode => {
+                if (confirmedId !== prevId) {
+                    // the client has not confirmed receiving the last state version
+                    // her image of reality is outdated
+                    dispatchRequired = true;
+                    payload.data[busCode] = {
+                        reset: state[busCode],
+                    };
+                    return;
+                }
+
                 if (changes[busCode] &&
                     Object.keys(changes[busCode].add).length +
                     Object.keys(changes[busCode].update).length +
                     changes[busCode].remove.length > 0
                 ) {
                     dispatchRequired = true;
-                    payload[busCode] = changes[busCode];
+                    payload.data[busCode] = changes[busCode];
                 }
             });
             if (dispatchRequired) {
                 const message = {
-                    type: messageTypes.UPDATE,
+                    type: messageTypes.STATE,
                     payload,
                 };
                 ws.send(JSON.stringify(message));

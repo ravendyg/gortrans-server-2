@@ -10,6 +10,9 @@ const utils = require('../lib/utils');
 
 const gortrans = require('../lib/services/nskgortrans');
 
+function createStateId() {
+    return (Math.random() * 1e5).toFixed(0);
+}
 
 module.exports = {
     subscribe,
@@ -17,10 +20,13 @@ module.exports = {
     addBusToSchedule,
     removeBusFromSchedule,
     getCurrentState,
+    getStateId,
 };
 
 let schedule = new Set();
-let currentState = {};
+let currentState = {
+    id: createStateId(),
+};
 let newState = {};
 
 let subscribers = {};
@@ -87,7 +93,10 @@ function processBusData(data) {
     let changes = {};
 
     if (data.length > 0) { // send data to socket delivery service
-        newState = {};
+        newState = {
+            prevId: currentState.id,
+            id: createStateId(),
+        };
         var _newState =
             data
                 .filter(utils.hasKeys)
@@ -143,7 +152,7 @@ function processBusData(data) {
 
 function notifyListeners(changes) {
     for (let key of Object.keys(subscribers)) {
-        subscribers[key](changes);
+        subscribers[key](changes, currentState);
     }
 }
 
@@ -160,6 +169,10 @@ function subscribe(cb) {
 function getCurrentState(busCode) { // don't reduce current state, since it's also used by raps providing route
     // can survive with that much data overhead
     return currentState[busCode];
+}
+
+function getStateId() {
+    return currentState.id;
 }
 
 function copyBusDataReduced(data) {

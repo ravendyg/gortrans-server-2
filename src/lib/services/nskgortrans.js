@@ -29,7 +29,7 @@ let state =
 module.exports.getState = () => state;
 
 
-models.Info.findOne({name: 'info'},
+false && models.Info.findOne({name: 'info'},
   (err, info) =>
   {
     // initial state reload

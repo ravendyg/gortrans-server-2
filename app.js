@@ -9,6 +9,7 @@ const request = require('request');
 const crypto = require('crypto');
 const http = require('http');
 const redis = require('redis');
+const magick = require('imagemagick');
 
 const mappers = require('./src/lib/mappers/dto');
 const date = Date;
@@ -40,7 +41,8 @@ const data = require('./src/lib/services/data')({
 });
 const webSocket = require('./src/lib/services/webSocket');
 
-var app = express();
+const app = express();
+const redisClient = redis.createClient({ 'return_buffers': true })
 
 const routesV2 = require('./src/routes/v2')({
     data,
@@ -49,9 +51,14 @@ const routesV2 = require('./src/routes/v2')({
     utils,
 });
 const tileRouter = require('./src/routes/tiles')({
+    crypto,
     express,
-    redis,
+    redisClient,
     request,
+    logger,
+    config,
+    // TODO: use additional image compression
+    magick,
 });
 
 app.use(_logger('dev'));

@@ -8,6 +8,7 @@ const fs = require('fs');
 const request = require('request');
 const crypto = require('crypto');
 const http = require('http');
+const redis = require('redis');
 
 const mappers = require('./src/lib/mappers/dto');
 const date = Date;
@@ -47,11 +48,17 @@ const routesV2 = require('./src/routes/v2')({
     logger,
     utils,
 });
+const tileRouter = require('./src/routes/tiles')({
+    express,
+    redis,
+    request,
+});
 
 app.use(_logger('dev'));
 app.use(bodyParser.json());
 
 app.use('/v2', routesV2);
+app.use('/tiles', tileRouter);
 
 // catch 404 and forward to error handler
 app.use((req, res) => {

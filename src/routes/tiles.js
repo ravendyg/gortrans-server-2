@@ -45,7 +45,6 @@ function createTileRoute({
         }
         const key = crypto.createHash('md5').update(url).digest('hex');
         const tspKey = 'tsp-' + key;
-        console.log(url);
         redisClient.get(tspKey, (redisTspErr, tspBuf) => {
             if (redisTspErr) {
                 logger.error(redisTspErr);

@@ -1,6 +1,6 @@
 {
     "name": "gortrans-server-2",
-    "version": "0.0.1",
+    "version": "2.1.2",
     "private": true,
     "scripts": {
         "start": "node ./app.js",

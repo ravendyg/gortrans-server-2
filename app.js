@@ -61,11 +61,10 @@ const tileRouter = require('./src/routes/tiles')({
     magick,
 });
 
-app.use(_logger('dev'));
 app.use(bodyParser.json());
-
-app.use('/v2', routesV2);
 app.use('/tiles', tileRouter);
+app.use(_logger('dev'));
+app.use('/v2', routesV2);
 
 // catch 404 and forward to error handler
 app.use((req, res) => {

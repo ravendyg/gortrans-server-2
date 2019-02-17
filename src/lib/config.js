@@ -35,6 +35,8 @@ const config = {
     FILTER_BUSES_OUT: e => !e.match(/1-264-W/),
 
     RESET_STATE_AFTER: 1000 * 60 * 5, // 5 minutes
+
+    TILES_VALID_FOR: 60 * 60 * 24 * 31.
 };
 
 module.exports = config;

@@ -8,6 +8,8 @@ const fs = require('fs');
 const request = require('request');
 const crypto = require('crypto');
 const http = require('http');
+const redis = require('redis');
+const magick = require('imagemagick');
 
 const mappers = require('./src/lib/mappers/dto');
 const date = Date;
@@ -39,7 +41,8 @@ const data = require('./src/lib/services/data')({
 });
 const webSocket = require('./src/lib/services/webSocket');
 
-var app = express();
+const app = express();
+const redisClient = redis.createClient({ 'return_buffers': true })
 
 const routesV2 = require('./src/routes/v2')({
     data,
@@ -47,10 +50,20 @@ const routesV2 = require('./src/routes/v2')({
     logger,
     utils,
 });
+const tileRouter = require('./src/routes/tiles')({
+    crypto,
+    express,
+    redisClient,
+    request,
+    logger,
+    config,
+    // TODO: use additional image compression
+    magick,
+});
 
-app.use(_logger('dev'));
 app.use(bodyParser.json());
-
+app.use('/tiles', tileRouter);
+app.use(_logger('dev'));
 app.use('/v2', routesV2);
 
 // catch 404 and forward to error handler
